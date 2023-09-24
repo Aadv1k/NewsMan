@@ -1,0 +1,4 @@
+VAR data = FETCH "https://edition.cnn.com/" AS HTML
+
+VAR d1 = EXTRACT ".layout--wide-left-balanced-2" FROM data
+VAR d2 = EXTRACT "div.zone:nth-child(3) > div:nth-child(1) > div:nth-child(1)" FROM data
