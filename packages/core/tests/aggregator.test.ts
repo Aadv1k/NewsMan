@@ -7,11 +7,7 @@ describe("Tests for the Aggregator", () => {
         expect(data.length).toBe(10);
     });
 
-    test.skip("Should get the latest news specified by the region", async () => {
-    });
-
-    test.skip("Should exclude the specified news sites", async () => {
-    });
-
+    test.todo("Should get the latest news specified by the region");
+    test.todo("Should exclude the specified news sites");
     test.todo("Should exclude the news if headlines contains keywords");
 })

@@ -16,7 +16,7 @@ export interface ProviderConfig {
     excludeSites?: Array<string>;
 }
 
-const HEADLINE_SOURCE_PATH = "./dql/headlines";
+const HEADLINE_SOURCE_PATH = "../dql/headlines";
 const DQL_EXTENSION = ".dql";
 
 interface DQLObject {
@@ -76,20 +76,39 @@ export default class NewsProvider {
     }
 
     async fetchHeadlines(config: ProviderConfig): Promise<News[]> {
-        const files = fs.readdirSync(HEADLINE_SOURCE_PATH);
-        assert.equal(files.length, 0, `At least one DracoQL file is expected in ${HEADLINE_SOURCE_PATH}`);
+        const files = fs.readdirSync(path.join(__dirname, HEADLINE_SOURCE_PATH));
+        assert.notEqual(files.length, 0, `At least one DracoQL file is expected in ${HEADLINE_SOURCE_PATH}`);
         let newsArticles: News[] = [];
 
         for (const fileName of files) {
+
             if (!fileName.endsWith(DQL_EXTENSION)) continue;
             const fileContent = fs.readFileSync(path.join(__dirname, HEADLINE_SOURCE_PATH, fileName), "utf-8");
-            const dracoNamespace: any  = await new Promise((resolve, reject) => {
-                draco.eval(fileContent, (ctx) => resolve(ctx.getVar("data")));
-            });
-            for (const dracoObject of dracoNamespace) {
-                if (dracoObject.type === "HTML") continue;
-                newsArticles.push(...this.extractNewsFromDQLObject(dracoObject));
+
+            const dracoLexer = new draco.lexer(fileContent);
+            const dracoParser = new draco.parser(dracoLexer.lex())
+            const dracoInterpreter = new draco.interpreter(dracoParser.parse());
+
+            try {
+                await dracoInterpreter.run()
+            } catch (error: any) {
+                throw new Error("ERROR: unable to fetch headlines due to DracoQL error: " + error.message)
+
             }
+            //console.log(dracoInterpreter.NS);
+
+
+            /*
+            const dracoNamespace: any  = await new Promise((resolve, reject) => {
+                draco.eval(fileContent, (ctx) => resolve(ctx.NS));
+            });
+
+            console.log(dracoNamespace);
+            for (const key in dracoNamespace) {
+                if (dracoNamespace[key].type === "HTML") continue;
+                newsArticles.push(...this.extractNewsFromDQLObject(dracoNamespace[key]));
+            }
+            */
         }
 
         return newsArticles;
