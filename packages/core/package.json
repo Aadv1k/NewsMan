@@ -12,6 +12,9 @@
   "author": "Aadvik<aadv1k@outlook.com>",
   "license": "ISC",
   "devDependencies": {
+    "@types/jest": "^29.5.5",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
     "typescript": "^5.2.2"
   }
 }
