@@ -1,0 +1,17 @@
+{
+  "name": "@newsman/core",
+  "version": "1.0.0",
+  "description": "the data aggregation, clean up and caching implementation",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsc --watch",
+    "test": "jest",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "Aadvik<aadv1k@outlook.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}
