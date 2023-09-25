@@ -12,7 +12,7 @@ const MAX_DEFAULT_HEADLINES = 10;
 interface News {
   title: string;
   description?: string | null;
-  coverUrl?: string;
+  coverUrl: string | null;
   url: string;
 }
 
@@ -39,6 +39,7 @@ interface ProviderConfig {
   maxItems?: number;
   region?: string;
   domainsToExclude?: Array<string>;
+  keywords?: Array<string>;
 }
 
 interface DQLFlatObject {
@@ -116,7 +117,6 @@ export class NewsProvider {
         ///////////////////////////////
 
         for (const fileName of files) {
-            // if (!utils.isDQLFileNameValid(fileName)) continue;
             const parsedFileName = utils.parseDQLFileName(fileName);
 
             if (config?.domainsToExclude && config.domainsToExclude.includes(parsedFileName.domain)) continue;
@@ -158,14 +158,19 @@ export class NewsProvider {
 
                     const news = this.serializeDQLObjectToObject(elem);
 
-                    newsArticles.push({
+
+                    const newsArticle: News = {
                         title: news.headings?.[0] || news.links[0]?.text || news.images[0]?.alt,
                         url: utils.isRelativeURL(news.links[0].href) ? `${parsedFileName.domain}/${news.links[0].href}` : news.links[0].href,
                         description: news.paragraphs?.[0] || null,
                         coverUrl: news.images?.[0]?.src || null,
-                    });A
+                    }
 
 
+                    if (config?.keywords && !config.keywords.some((e: string) => newsArticle.title.toLowerCase().includes(e.toLowerCase()))) {
+                        return;
+                    }
+                    newsArticles.push(newsArticle);
                 });
             }
         }

@@ -2,7 +2,7 @@ import NewsProvider from "../src/NewsAggregator";
 
 describe("Tests for the Aggregator", () => {
     const provider = new NewsProvider();
-    test.skip("Should get the top 10 global headlines", async () => {
+    test("Should get the top 10 global headlines", async () => {
         const data = await provider.fetchHeadlines({ maxItems: 10 });
         expect(data.length).toBeGreaterThan(0);
     }, 15000);
@@ -12,6 +12,9 @@ describe("Tests for the Aggregator", () => {
         expect(data.length).toBeGreaterThan(0);
     }, 15000);
 
-    test.todo("Should exclude the specified news sites");
-    test.todo("Should exclude the news if headlines contains keywords");
+    test("Should include the news if headlines contains keywords", async () => {
+        const keywords = ["BJP", "Delhi", "Schools"];
+        const data = await provider.fetchHeadlines({ region: "in", keywords, });
+        expect(data.every((elem: any) => keywords.some((keyword: string) => elem.title.toLowerCase().includes(keyword.toLowerCase())))).toBe(true);
+    }, 15000);
 })
