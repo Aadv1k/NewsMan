@@ -1,6 +1,8 @@
-VAR data = FETCH "https://www.ndtv.com/"
+VAR data = FETCH "https://www.india.com/"
   CACHE 6e5 "./"
   HEADER "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/112.0"
   AS HTML
 
-VAR d1 = EXTRACT "#topstoriesdata > ul:nth-child(2)" FROM data
+VAR d1 = EXTRACT ".top-news > div:nth-child(2)" FROM data
+
+

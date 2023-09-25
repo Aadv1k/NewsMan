@@ -1,2 +1,0 @@
-VAR data = FETCH "https://www.nytimes.com/" AS HTML
-VAR d1 = EXTRACT "" FROM data
