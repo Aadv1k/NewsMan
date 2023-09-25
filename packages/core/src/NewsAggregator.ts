@@ -11,9 +11,11 @@ const MAX_DEFAULT_HEADLINES = 10;
 
 interface News {
   title: string;
-  description?: string | null;
-  coverUrl: string | null;
   url: string;
+  source: string; 
+  description: string | null;
+  publishedAt: string | null;
+  urlToImage: string | null;
 }
 
 interface DQLTextNode {
@@ -37,9 +39,8 @@ interface DQLHtmlObject {
 
 interface ProviderConfig {
   maxItems?: number;
-  region?: string;
-  domainsToExclude?: Array<string>;
-  keywords?: Array<string>;
+  countryCode?: string;
+  excludeDomains?: Array<string>;
 }
 
 interface DQLFlatObject {
@@ -104,23 +105,20 @@ export class NewsProvider {
     }
 
 
-    async fetchHeadlines(config: ProviderConfig): Promise<News[]> {
+    async fetchHeadlines(config: ProviderConfig = {}): Promise<News[]> {
+        const { countryCode = "in", maxItems = 10, excludeDomains = [] } = config;
+
         const dirPath = path.join(__dirname, HEADLINE_SOURCE_PATH);
         const files = await fs.readdir(dirPath);
         assert.notStrictEqual(files.length, 0, `At least one DracoQL file is expected in ${HEADLINE_SOURCE_PATH}`);
 
         const newsArticles: News[] = [];
 
-        ///////////////////////////////
-        ////////////////////////// TEMP
-        files.pop()
-        ///////////////////////////////
-
         for (const fileName of files) {
             const parsedFileName = utils.parseDQLFileName(fileName);
 
-            if (config?.domainsToExclude && config.domainsToExclude.includes(parsedFileName.domain)) continue;
-            if (config?.region && config.region !== parsedFileName.region) continue;
+            if (excludeDomains.includes(parsedFileName.domain)) continue;
+            if (countryCode !== parsedFileName.region) continue;
 
             if (newsArticles.length >= (config.maxItems ?? MAX_DEFAULT_HEADLINES)) break;
 
@@ -157,19 +155,15 @@ export class NewsProvider {
                     }
 
                     const news = this.serializeDQLObjectToObject(elem);
-
-
                     const newsArticle: News = {
                         title: news.headings?.[0] || news.links[0]?.text || news.images[0]?.alt,
                         url: utils.isRelativeURL(news.links[0].href) ? `${parsedFileName.domain}/${news.links[0].href}` : news.links[0].href,
                         description: news.paragraphs?.[0] || null,
-                        coverUrl: news.images?.[0]?.src || null,
+                        source: parsedFileName.domain,
+                        publishedAt: null, // TODO: find some way to implement this
+                        urlToImage: news.images?.[0]?.src || null,
                     }
 
-
-                    if (config?.keywords && !config.keywords.some((e: string) => newsArticle.title.toLowerCase().includes(e.toLowerCase()))) {
-                        return;
-                    }
                     newsArticles.push(newsArticle);
                 });
             }
