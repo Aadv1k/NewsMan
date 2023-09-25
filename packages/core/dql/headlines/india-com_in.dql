@@ -4,5 +4,3 @@ VAR data = FETCH "https://www.india.com/"
   AS HTML
 
 VAR d1 = EXTRACT ".top-news > div:nth-child(2)" FROM data
-
-

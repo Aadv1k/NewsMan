@@ -2,14 +2,11 @@ export function isRelativeURL(url: string): boolean {
   return !/^(https?:\/\/|\/\/)/.test(url);
 }
 
-export interface DQLFileName {
-  language: string;
-  region: NewsRegion;
-}
+const RegionCodes = new Set(["in", "us"]);
 
-export enum NewsRegion {
-  US = 'us',
-  IN = 'in',
+export interface DQLFileName {
+  region: string;
+  domain: string;
 }
 
 export function isDQLFileNameValid(filename: string): boolean {
@@ -18,13 +15,13 @@ export function isDQLFileNameValid(filename: string): boolean {
 }
 
 export function parseDQLFileName(filename: string): DQLFileName {
-  const [domain, region] = filename.split('_');
+  const [domain, region] = (filename.split('.').shift() as string).split('_');
 
   const fixedDomain = `https://${domain.replace('-', '.')}`;
 
   new URL(fixedDomain);
 
-  if (!(region in NewsRegion)) {
+  if (!RegionCodes.has(region)) {
     throw new Error(`Invalid region: ${region}`);
   }
 
