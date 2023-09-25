@@ -5,10 +5,10 @@ import path from "node:path";
 import fs from "node:fs";
 
 export interface News {
-  title: string;
-  description?: string;
-  coverUrl?: string;
-  url: string;
+    title: string;
+    description?: string;
+    coverUrl?: string;
+    url: string;
 }
 
 export interface ProviderConfig {
@@ -20,59 +20,88 @@ const HEADLINE_SOURCE_PATH = "../dql/headlines";
 const DQL_EXTENSION = ".dql";
 
 interface DQLObject {
-  type: 'JSON';
-  value: {
-    tag: string;
-    attributes: {
-      href?: string;
-      src?: string;
+    type: 'JSON';
+    value: {
+        tag: string;
+        attributes: {
+            href?: string;
+            src?: string;
+        };
+        children: Array<{
+            type: 'JSON';
+            value: {
+                tag: string;
+                attributes: {
+                    href?: string;
+                    src?: string;
+                };
+                children: Array<{
+                    type: 'TextNode';
+                    text?: string;
+                }>;
+            };
+        }>;
     };
-    children: {
-      type: 'TextNode';
-      text?: string;
-    }[];
-  };
 }
 
 export default class NewsProvider {
-    private extractNewsFromDQLObject(obj: DQLObject): Array<News> {
-        const newsList: Array<News> = [];
+    private extractNewsFromDQLObject(value: DQLObject["value"]): Array<News> {
+        const newsArticles: News[] = [];
+        let currentGroup: News | null = null;
 
-        function traverseChildren(element: any) {
-            if (element.tag === 'a' && element.attributes?.href) {
-                const news: News = {
-                    title: '',
-                    description: '',
-                    url: element.attributes.href,
-                    coverUrl: '',
-                };
-
-                for (const child of element.children) {
-                    if (child.type === 'TextNode' && child.text) {
-                        if (!news.title) {
-                            news.title = child.text;
-                        } else {
-                            if (news.description) {
-                                news.description += ' ';
-                            }
-                            news.description += child.text;
-                        }
+        if (!value.children) return [];
+        for (const elem of value.children) {
+            const innerValue: any = elem.value;
+            switch (innerValue.tag) {
+                case "div":
+                case "section":
+                case "main":
+                case "span":
+                    if (currentGroup) {
+                        newsArticles.push(currentGroup);
+                        currentGroup = null;
                     }
-                }
-
-               newsList.push(news);
-            }
-
-            if (element.children) {
-                for (const child of element.children) {
-                    traverseChildren(child);
-                }
+                    newsArticles.push(...this.extractNewsFromDQLObject(innerValue));
+                    break;
+                case "h1":
+                case "h2":
+                case "h3":
+                case "h4":
+                case "h5":
+                case "h6":
+                    if (!currentGroup) {
+                        currentGroup = { title: "", description: "", coverUrl: "", url: "" };
+                    }
+                    currentGroup.title = innerValue.children[0].text || "";
+                    break;
+                case "p":
+                    const firstChild = innerValue.children[0];
+                    if (firstChild.type === "TextNode") {
+                        if (!currentGroup) {
+                            currentGroup = { title: "", description: "", coverUrl: "", url: "" };
+                        }
+                        currentGroup.description = firstChild.text || "";
+                    } else if (innerValue.tag === "a" && firstChild.text) {
+                        if (!currentGroup) {
+                            currentGroup = { title: "", description: "", coverUrl: "", url: "" };
+                        }
+                        currentGroup.coverUrl = innerValue.attributes?.href || "";
+                    }
+                    break;
+                case "img":
+                    if (currentGroup) {
+                        currentGroup.coverUrl = innerValue.attributes?.src || "";
+                    }
+                    break;
+                default:
+                    assert(false, "Unidentified tag");
             }
         }
 
-        traverseChildren(obj.value);
-
-        return newsList;
+        if (currentGroup) {
+            newsArticles.push(currentGroup);
+        }
+        return newsArticles;
     }
 
     async fetchHeadlines(config: ProviderConfig): Promise<News[]> {
@@ -81,36 +110,33 @@ export default class NewsProvider {
         let newsArticles: News[] = [];
 
         for (const fileName of files) {
-
             if (!fileName.endsWith(DQL_EXTENSION)) continue;
             const fileContent = fs.readFileSync(path.join(__dirname, HEADLINE_SOURCE_PATH, fileName), "utf-8");
 
-            const dracoLexer = new draco.lexer(fileContent);
-            const dracoParser = new draco.parser(dracoLexer.lex())
-            const dracoInterpreter = new draco.interpreter(dracoParser.parse());
+            let dracoLexer, dracoParser, dracoInterpreter;
 
             try {
-                await dracoInterpreter.run()
+                dracoLexer = new draco.lexer(fileContent);
+                dracoParser = new draco.parser(dracoLexer.lex());
+                dracoInterpreter = new draco.interpreter(dracoParser.parse());
             } catch (error: any) {
-                throw new Error("ERROR: unable to fetch headlines due to DracoQL error: " + error.message)
-
+                throw new Error("ERROR: unable to parse DracoQL due to error: " + error.message);
             }
-            //console.log(dracoInterpreter.NS);
 
-
-            /*
-            const dracoNamespace: any  = await new Promise((resolve, reject) => {
-                draco.eval(fileContent, (ctx) => resolve(ctx.NS));
-            });
-
-            console.log(dracoNamespace);
-            for (const key in dracoNamespace) {
-                if (dracoNamespace[key].type === "HTML") continue;
-                newsArticles.push(...this.extractNewsFromDQLObject(dracoNamespace[key]));
+            try {
+                await dracoInterpreter.run();
+            } catch (error: any) {
+                throw new Error("ERROR: unable to fetch headlines due to DracoQL error: " + error.message);
             }
-            */
+
+            const dracoNS = dracoInterpreter.NS;
+
+            for (let key in dracoNS) {
+                if (dracoNS[key]?.type === "HTML" || !dracoNS?.[key]) continue;
+                const news = this.extractNewsFromDQLObject(dracoNS[key] as any);
+                newsArticles.push(...news);
+            }
         }
-
         return newsArticles;
     }
 }
