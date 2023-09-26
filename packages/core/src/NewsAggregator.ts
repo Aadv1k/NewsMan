@@ -9,14 +9,7 @@ const HEADLINE_SOURCE_PATH = "../dql/headlines/"
 const MAX_DEFAULT_HEADLINES = 10;
 
 
-interface News {
-  title: string;
-  url: string;
-  source: string; 
-  description: string | null;
-  publishedAt: string | null;
-  urlToImage: string | null;
-}
+import { News } from "./types";
 
 interface DQLTextNode {
   type: 'TextNode';
@@ -114,13 +107,20 @@ export class NewsProvider {
 
         const newsArticles: News[] = [];
 
-        for (const fileName of files) {
-            const parsedFileName = utils.parseDQLFileName(fileName);
+        for (const file of files) {
+            const {
+                domain: fileDomain,
+                region: fileCountryCode,
+            } = utils.parseDQLFileName(file);
 
-            if (excludeDomains.includes(parsedFileName.domain)) continue;
-            if (countryCode !== parsedFileName.region) continue;
 
-            if (newsArticles.length >= (config.maxItems ?? MAX_DEFAULT_HEADLINES)) break;
+            if (excludeDomains.includes(fileDomain) || countryCode !== fileCountryCode) {
+                continue;
+            }
+
+            if (newsArticles.length >= maxItems) {
+                break;
+            }
 
             const filePath = path.join(dirPath, fileName);
             const fileContent = await fs.readFile(filePath, 'utf-8');
