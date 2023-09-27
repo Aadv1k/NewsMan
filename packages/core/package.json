@@ -2,8 +2,13 @@
   "name": "@newsman/core",
   "version": "1.0.0",
   "description": "the data aggregation, clean up and caching implementation",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "dql"
+  ],
   "scripts": {
+    "prepare": "npm run build",
     "dev": "tsc --watch",
     "test": "jest --verbose",
     "build": "tsc"
@@ -18,7 +23,6 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "dracoql": "^0.4.1",
-    "mongodb": "^6.1.0"
+    "dracoql": "^0.4.1"
   }
 }

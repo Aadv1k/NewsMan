@@ -122,7 +122,7 @@ export class NewsProvider {
                 break;
             }
 
-            const filePath = path.join(dirPath, fileName);
+            const filePath = path.join(dirPath, file);
             const fileContent = await fs.readFile(filePath, 'utf-8');
 
             let dracoLexer, dracoParser, dracoInterpreter;
@@ -157,9 +157,9 @@ export class NewsProvider {
                     const news = this.serializeDQLObjectToObject(elem);
                     const newsArticle: News = {
                         title: news.headings?.[0] || news.links[0]?.text || news.images[0]?.alt,
-                        url: utils.isRelativeURL(news.links[0].href) ? `${parsedFileName.domain}/${news.links[0].href}` : news.links[0].href,
+                        url: utils.isRelativeURL(news.links[0].href) ? `${fileDomain}/${news.links[0].href}` : news.links[0].href,
                         description: news.paragraphs?.[0] || null,
-                        source: parsedFileName.domain,
+                        source: fileDomain,
                         publishedAt: null, // TODO: find some way to implement this
                         urlToImage: news.images?.[0]?.src || null,
                     }
