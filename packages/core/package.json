@@ -18,6 +18,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "dracoql": "^0.4.1"
+    "dracoql": "^0.4.1",
+    "mongodb": "^6.1.0"
   }
 }
