@@ -3,7 +3,15 @@ import assert from 'assert';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as utils from './utils';
-import { News } from './types';
+
+export interface News {
+  title: string;
+  url: string;
+  source: string; 
+  description: string | null;
+  publishedAt: string | null;
+  urlToImage: string | null;
+}
 
 interface DQLTextNode {
   type: 'TextNode';
@@ -163,7 +171,7 @@ export default class NewsProvider {
       const { domain: fileDomain, region: fileCountryCode } = utils.parseDQLFileName(file);
 
       if (newsArticles.length >= maxItems) break;
-      if (excludeDomains.includes(fileDomain) || countryCode !== fileCountryCode) {
+      if (excludeDomains.some((e: string) => fileDomain.includes(e)) || countryCode !== fileCountryCode) {
         continue;
       }
 
