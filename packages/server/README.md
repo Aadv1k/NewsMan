@@ -142,4 +142,4 @@ Keep in mind there can only be one key at a time, and hence deleting it will inv
 
 ### `GET /v1/everything?apiKey=your-api-key `
 
-same as before
+same as the previous field
