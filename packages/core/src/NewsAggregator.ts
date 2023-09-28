@@ -1,15 +1,9 @@
 import * as draco from 'dracoql';
 import assert from 'assert';
-import path from 'path';
 import { promises as fs } from 'fs';
-
+import * as path from 'path';
 import * as utils from './utils';
-
-const HEADLINE_SOURCE_PATH = "../dql/headlines/"
-const MAX_DEFAULT_HEADLINES = 10;
-
-
-import { News } from "./types";
+import { News } from './types';
 
 interface DQLTextNode {
   type: 'TextNode';
@@ -21,161 +15,170 @@ interface DQLHtmlElement {
   attributes: {
     href?: string;
     src?: string;
+    alt?: string;
   };
-  children: Array<DQLHtmlElement | DQLTextNode>;
+  children: Array<DQLHtmlElement>;
 }
 
-interface DQLHtmlObject {
-  type: 'JSON';
+interface DQLObject {
+  type: 'JSON' | 'HTML';
   value: DQLHtmlElement;
 }
 
 interface ProviderConfig {
-  maxItems?: number;
   countryCode?: string;
-  excludeDomains?: Array<string>;
+  excludeDomains?: string[];
+  maxItems?: number;
+  domains?: string[];
 }
 
 interface DQLFlatObject {
-  headings: Array<string>;
-  links: Array<{
+  headings: string[];
+  links: {
     href: string;
     text: string;
-  }>;
-  paragraphs: Array<string>;
-  images: Array<{
+  }[];
+  paragraphs: string[];
+  images: {
     src: string;
     alt: string;
-  }>;
+  }[];
 }
 
+export default class NewsProvider {
+  private headlineDirPath?: string;
+  private everythingDirPath?: string;
+  private defaultCountryCode: string;
 
-export class NewsProvider {
-    private serializeDQLObjectToObject(element: DQLHtmlElement): DQLFlatObject {
-        const flatObject: DQLFlatObject = {
-            headings: [],
-            links: [],
-            paragraphs: [],
-            images: [],
-        };
+  constructor(headlineDir?: string, everythingDir?: string, defaultCountryCode?: string) {
+    this.headlineDirPath = headlineDir;
+    this.everythingDirPath = everythingDir;
+    this.defaultCountryCode = defaultCountryCode ?? 'in';
+  }
 
-        function processElement(node: any) {
-            if (!node.tag) return;
+  private serializeDQLObjectToObject(element: DQLHtmlElement): DQLFlatObject {
+    const flatObject: DQLFlatObject = {
+      headings: [],
+      links: [],
+      paragraphs: [],
+      images: [],
+    };
 
-            switch (node.tag) {
-                case "h1":
-                case "h2":
-                case "h3":
-                case "h4":
-                case "h5":
-                case "h6":
-                    flatObject.headings.push((node.children[0] as DQLTextNode)?.text || '');
-                    break;
-                case "a":
-                    if (node.children[0]?.type === 'TextNode') {
-                        flatObject.links.push({ href: node.attributes.href, text: node.children[0].text });
-                    } else if (node.children[0]?.tag === 'img') {
-                        flatObject.images.push({ src: node.children[0].attributes.src, alt: node.children[0].attributes.alt });
-                    }
-                    break;
-                case "img":
-                    flatObject.images.push({ src: node.attributes.src, alt: node.attributes.alt });
-                    break;
-                case "p":
-                    flatObject.paragraphs.push((node.children[0] as DQLTextNode)?.text || '');
-                case "article":
-                case "div":
-                case "li":
-                    break;
-                default:
-                        throw new Error(`ERROR unhandled tag: ${node.tag}`);
-            }
+    function processElement(node: DQLHtmlElement) {
+      if (!node.tag) return;
 
-            if (node.children) {
-                for (const child of node.children) {
-                    processElement(child);
-                }
-            }
+      switch (node.tag) {
+        case 'h1':
+        case 'h2':
+        case 'h3':
+        case 'h4':
+        case 'h5':
+        case 'h6':
+          flatObject.headings.push((node.children[0] as any)?.text || ''); // Why is TypeScript so insufferable?
+          break;
+        case 'a':
+          if ((node.children[0] as any)?.type === 'TextNode') {
+            flatObject.links.push({ href: node.attributes.href || '', text: (node.children[0] as any).text });
+          } else if (node.children[0]?.tag === 'img') {
+            flatObject.images.push({ src: node.children[0].attributes.src || '', alt: node.children[0].attributes.alt || '' });
+          }
+          break;
+        case 'img':
+          flatObject.images.push({ src: node.attributes.src || '', alt: node.attributes.alt || '' });
+          break;
+        case 'p':
+          flatObject.paragraphs.push((node.children[0] as any)?.text || '');
+          break;
+        case 'article':
+        case 'div':
+        case 'li':
+          break;
+        default:
+          throw new Error(`ERROR unhandled tag: ${node.tag}`);
+      }
+
+      if (node.children) {
+        for (const child of node.children) {
+          processElement(child);
         }
-
-        processElement(element);
-        return flatObject;
+      }
     }
 
+    processElement(element);
+    return flatObject;
+  }
 
-    async fetchHeadlines(config: ProviderConfig = {}): Promise<News[]> {
-        const { countryCode = "in", maxItems = 10, excludeDomains = [] } = config;
+  private getNewsFromFlatObject(flatObject: DQLFlatObject, fileDomain: string): News {
+    return {
+      title: flatObject.headings?.[0] || flatObject.links[0]?.text || flatObject.images[0]?.alt || '',
+      url: utils.isRelativeURL(flatObject.links[0]?.href || '') ? `${fileDomain}/${flatObject.links[0]?.href || ''}` : flatObject.links[0]?.href || '',
+      description: flatObject.paragraphs?.[0] || '',
+      source: fileDomain,
+      publishedAt: null, // TODO: this attribute is not attached to many card-like-ui which is common for news articles
+      urlToImage: flatObject.images?.[0]?.src || '',
+    };
+  }
 
-        const dirPath = path.join(__dirname, HEADLINE_SOURCE_PATH);
-        const files = await fs.readdir(dirPath);
-        assert.notStrictEqual(files.length, 0, `At least one DracoQL file is expected in ${HEADLINE_SOURCE_PATH}`);
+  private async readAndParseDQL(filepath: string): Promise<DQLObject[]> {
+    const fileContent = await fs.readFile(filepath, 'utf-8');
 
-        const newsArticles: News[] = [];
+    let dracoLexer, dracoParser, dracoInterpreter;
 
-        for (const file of files) {
-            const {
-                domain: fileDomain,
-                region: fileCountryCode,
-            } = utils.parseDQLFileName(file);
-
-
-            if (excludeDomains.includes(fileDomain) || countryCode !== fileCountryCode) {
-                continue;
-            }
-
-            if (newsArticles.length >= maxItems) {
-                break;
-            }
-
-            const filePath = path.join(dirPath, file);
-            const fileContent = await fs.readFile(filePath, 'utf-8');
-
-            let dracoLexer, dracoParser, dracoInterpreter;
-
-            try {
-                dracoLexer = new draco.lexer(fileContent);
-                dracoParser = new draco.parser(dracoLexer.lex());
-                dracoInterpreter = new draco.interpreter(dracoParser.parse());
-            } catch (error: any) {
-                throw new Error(`ERROR: unable to parse DracoQL due to error: ${error.message}`);
-            }
-
-
-            try {
-                await dracoInterpreter.run();
-            } catch (error: any) {
-                throw new Error(`ERROR: unable to fetch headlines due to DracoQL error: ${error.message}`);
-            }
-
-            const dracoNS = dracoInterpreter.NS;
-
-            for (let key in dracoNS) {
-                if (dracoNS[key]?.type === 'HTML' || !dracoNS?.[key]) {
-                    continue;
-                }
-
-                (dracoNS[key] as any).value.children.forEach((elem: any) => {
-                    if (elem?.type === 'TextNode') {
-                        return;
-                    }
-
-                    const news = this.serializeDQLObjectToObject(elem);
-                    const newsArticle: News = {
-                        title: news.headings?.[0] || news.links[0]?.text || news.images[0]?.alt,
-                        url: utils.isRelativeURL(news.links[0].href) ? `${fileDomain}/${news.links[0].href}` : news.links[0].href,
-                        description: news.paragraphs?.[0] || null,
-                        source: fileDomain,
-                        publishedAt: null, // TODO: find some way to implement this
-                        urlToImage: news.images?.[0]?.src || null,
-                    }
-
-                    newsArticles.push(newsArticle);
-                });
-            }
-        }
-        return newsArticles;
+    try {
+      dracoLexer = new draco.lexer(fileContent);
+      dracoParser = new draco.parser(dracoLexer.lex());
+      dracoInterpreter = new draco.interpreter(dracoParser.parse());
+    } catch (error: any) {
+      throw new Error(`ERROR: unable to parse DracoQL due to error: ${error.message}`);
     }
+
+    try {
+      await dracoInterpreter.run();
+    } catch (error: any) {
+      throw new Error(`ERROR: unable to fetch headlines due to DracoQL error: ${error.message}`);
+    }
+
+    return Object.values(dracoInterpreter.NS as any).filter((dqlVar: any) => dqlVar.type !== 'HTML') as Array<DQLObject>;
+  }
+
+  async fetchHeadlines(config: ProviderConfig = {}): Promise<News[]> {
+    if (!this.headlineDirPath) throw new Error('ERROR: fetchHeadlines cannot be used without specifying headlineDirPath');
+    return this.fetchAndParseDQLFromDir(this.headlineDirPath, config);
+  }
+
+  async fetchEverything(config: ProviderConfig = {}): Promise<News[]> {
+    if (!this.everythingDirPath) throw new Error('ERROR: fetchEverything cannot be used without specifying everythingDirPath');
+    return this.fetchAndParseDQLFromDir(this.everythingDirPath, config);
+  }
+
+  private async fetchAndParseDQLFromDir(dirpath: string, config: ProviderConfig = {}): Promise<News[]> {
+    const { countryCode = this.defaultCountryCode, maxItems = 10, excludeDomains = [], domains = [] } = config;
+
+    const files = await fs.readdir(dirpath);
+    assert(files.length !== 0, `At least one DracoQL file is expected in ${dirpath}`);
+
+    const newsArticles: News[] = [];
+
+    for (const file of files) {
+      const { domain: fileDomain, region: fileCountryCode } = utils.parseDQLFileName(file);
+
+      if (newsArticles.length >= maxItems) break;
+      if (excludeDomains.includes(fileDomain) || countryCode !== fileCountryCode) {
+        continue;
+      }
+
+      try {
+        const dqlHtmlObjects = await this.readAndParseDQL(path.join(dirpath, file));
+        dqlHtmlObjects[0].value.children.forEach((elem: DQLHtmlElement) => {
+          if ((elem as any)?.type === 'TextNode') return;
+
+          const flatObject = this.serializeDQLObjectToObject(elem);
+          newsArticles.push(this.getNewsFromFlatObject(flatObject, fileDomain));
+        });
+      } catch (error: any) {
+        throw new Error(`ERROR: failed to parse DracoQL due to error: ${error.message}`);
+      }
+    }
+    return newsArticles;
+  }
 }
-
-export default NewsProvider;
-
