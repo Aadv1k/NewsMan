@@ -78,9 +78,14 @@ export class NewsProvider {
                         flatObject.images.push({ src: node.children[0].attributes.src, alt: node.children[0].attributes.alt });
                     }
                     break;
+                case "img":
+                    flatObject.images.push({ src: node.attributes.src, alt: node.attributes.alt });
+                    break;
                 case "p":
                     flatObject.paragraphs.push((node.children[0] as DQLTextNode)?.text || '');
                 case "article":
+                case "div":
+                case "li":
                     break;
                 default:
                         throw new Error(`ERROR unhandled tag: ${node.tag}`);
