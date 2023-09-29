@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import userSchema from "../schema/userSchema";
 import { ErrorResponseBuilder, ErrorStatus } from "../ResponseBuilder";
 
-interface User {
+export interface User {
     email: string;
     id?: string;
     password: string;
