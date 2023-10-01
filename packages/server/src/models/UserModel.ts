@@ -1,31 +1,37 @@
-import { User } from "../controllers/user";
 import client from "./client";
-
 import { v4 as uuidv4 } from "uuid";
 
-export default class {
-    async init() {
-        client.query(`CREATE TABLE IF NOT EXISTS users (
-                user_id UUID PRIMARY KEY DEFAULT uuidv4()
-                email VARCHAR(255) NOT NULL UNIQUE,
-                password STRING NOT NULL
-            )
-        `)
-    }
+import { User } from "../types";
 
-    async createUser(user: User): Promise<string> {
-        const queryResult =  await client.query("INSERT INTO users (id = $1, email = $2, password = $3) RETURNING id", [uuidv4(), user.email, user.password]);
-        return queryResult.rows[0].id;
-    }
+class UserRepository {
+  async init() {
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        user_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        email VARCHAR(255) NOT NULL UNIQUE,
+        password STRING NOT NULL
+      )
+    `);
+  }
 
-    async deleteUserBy(field: string, value: string): Promise<string> {
-        const queryResult = await client.query(`DELETE FROM users WHERE ${field} = $1 RETURNING id`, [value]);
-        return queryResult.rows[0].id;
-    }
+  async createUser(user: User): Promise<User> {
+    const queryResult = await client.query("INSERT INTO users (user_id, email, password) VALUES ($1, $2, $3) RETURNING user_id", [
+      uuidv4(),
+      user.email,
+      user.password,
+    ]);
+    return queryResult.rows[0];
+  }
 
-    async getUserBy(field: string, value: string): Promise<User> {
-        const queryResult = await client.query(`SELECT FROM users WHERE ${field} = $1 LIMIT 1`, [value]);
-        return queryResult.rows[0] as User;
-    }
+  async deleteUserBy(field: string, value: string): Promise<string> {
+    const queryResult = await client.query(`DELETE FROM users WHERE ${field} = $1 RETURNING user_id`, [value]);
+    return queryResult.rows[0].user_id;
+  }
 
+  async findUserBy(field: string, value: string): Promise<User | undefined> {
+    const queryResult = await client.query(`SELECT * FROM users WHERE ${field} = $1 LIMIT 1`, [value]);
+    return queryResult.rows[0] as User | undefined;
+  }
 }
+
+export default new UserRepository();
