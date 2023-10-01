@@ -1,11 +1,12 @@
 import express from "express";
 import { ErrorStatus, ErrorResponseBuilder } from "../../ResponseBuilder";
-import { registerUser } from "../../controllers/user";
+import { registerUser, loginUser, deleteUser } from "../../controllers/user";
 
 const router: express.Router = express.Router();
 
-router.post("/login", );
+router.post("/login", loginUser);
 router.post("/register", registerUser);
+router.delete("/", deleteUser)
 
 router.all(["/", "/*"], (req, res) => {
     return res.status(405).json(new ErrorResponseBuilder()

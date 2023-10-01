@@ -125,3 +125,55 @@ export async function registerUser(req: Request, res: Response) {
     );
   }
 }
+
+export async function deleteUser(req: Request, res: Response) {
+  const { error: schemaError, value: postData } = userSchema.validate(req.body, { abortEarly: true });
+
+  if (schemaError) {
+    const validationErrors = schemaError.details.map(detail => ({
+      field: detail.context?.key,
+      message: detail.message,
+    }));
+
+    return res.status(400).json(
+      new ErrorResponseBuilder()
+        .withCode(400)
+        .withMessage("Validation failed")
+        .withStatus(ErrorStatus.badInput)
+        .withDetails(validationErrors)
+        .build()
+    );
+  }
+
+  const userEmail = postData.email;
+
+  try {
+    const deletedUserId = await UserModel.deleteUserBy("email", userEmail);
+
+    if (deletedUserId) {
+      return res.status(200).json({ message: "User deleted successfully" });
+    } else {
+      return res.status(404).json(
+        new ErrorResponseBuilder()
+          .withCode(404)
+          .withMessage("User not found")
+          .withStatus(ErrorStatus.notFound)
+          .withDetails({})
+          .build()
+      );
+    }
+  } catch (error: any) {
+    console.error("Error deleting user:", error);
+
+    return res.status(500).json(
+      new ErrorResponseBuilder()
+        .withCode(500)
+        .withMessage("Internal server error")
+        .withStatus(ErrorStatus.internalError)
+        .withDetails({
+          error: error.message,
+        })
+        .build()
+    );
+  }
+}
