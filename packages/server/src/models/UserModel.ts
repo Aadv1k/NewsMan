@@ -13,7 +13,6 @@ export default class {
         `)
     }
 
-
     async createUser(user: User): Promise<string> {
         const queryResult =  await client.query("INSERT INTO users (id = $1, email = $2, password = $3) RETURNING id", [uuidv4(), user.email, user.password]);
         return queryResult.rows[0].id;

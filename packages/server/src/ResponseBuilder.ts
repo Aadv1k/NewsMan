@@ -1,6 +1,10 @@
 export enum ErrorStatus {
-  badInput = "BAD_INPUT",
+    badInput = "BAD_INPUT";
+    notFound = "NOT_FOUND";
+    internalError = "INTERNAL_ERROR";
+    unauthorized = "UNAUTHORIZED";
 }
+
 
 interface ErrorResponse {
   error: {
