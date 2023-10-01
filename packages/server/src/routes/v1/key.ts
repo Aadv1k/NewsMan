@@ -5,8 +5,8 @@ import { createKey, deleteKey, cycleKey } from "../../controllers/key";
 const router: express.Router = express.Router();
 
 router.post("/", createKey);
-router.delete("/:keyid", deleteKey)
 router.patch("/:keyid", cycleKey);
+router.delete("/:keyid", deleteKey);
 
 router.all(["/", "/*"], (req, res) => {
     return res.status(405).json(new ErrorResponseBuilder()
