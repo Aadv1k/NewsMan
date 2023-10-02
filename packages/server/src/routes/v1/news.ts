@@ -5,7 +5,7 @@ import { getHeadlines } from "../../controllers/news";
 const router: express.Router = express.Router();
 
 // router.get("/everything", getEverything);
-router.get("/headlines ", getHeadlines);
+router.get("/headlines", getHeadlines);
 
 router.all(["/", "/*"], (req, res) => {
     return res.status(405).json(new ErrorResponseBuilder()
