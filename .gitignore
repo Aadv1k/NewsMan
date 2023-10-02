@@ -2,6 +2,8 @@
 /node_modules/
 **/dist/
 
+**/.env
+
 # DracoQL https://github.com/aadv1k/dracoql#caching-html
 **/html-cache/
 
