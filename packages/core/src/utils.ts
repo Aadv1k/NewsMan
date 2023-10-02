@@ -2,7 +2,7 @@ export function isRelativeURL(url: string): boolean {
   return !/^(https?:\/\/|\/\/)/.test(url);
 }
 
-const RegionCodes = new Set(["in", "us"]);
+export const RegionCodes = new Set(["in", "us"]);
 
 export interface DQLFileName {
   region: string;
