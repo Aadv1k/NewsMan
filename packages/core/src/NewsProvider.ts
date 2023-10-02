@@ -168,12 +168,10 @@ export default class NewsProvider {
     const newsArticles: News[] = [];
 
     for (const file of files) {
-      const { domain: fileDomain, region: fileCountryCode } = utils.parseDQLFileName(file);
-
+      let { domain: fileDomain, region: fileCountryCode } = utils.parseDQLFileName(file);
+      
       if (newsArticles.length >= maxItems) break;
-      if (excludeDomains.some((e: string) => fileDomain.includes(e)) || countryCode !== fileCountryCode) {
-        continue;
-      }
+      if (excludeDomains.some((e: string) => fileDomain.includes(e)) || countryCode.toLowerCase() !== fileCountryCode) continue;
 
       try {
         const dqlHtmlObjects = await this.readAndParseDQL(path.join(dirpath, file));

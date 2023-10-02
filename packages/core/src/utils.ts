@@ -15,7 +15,10 @@ export function isDQLFileNameValid(filename: string): boolean {
 }
 
 export function parseDQLFileName(filename: string): DQLFileName {
-  const [domain, region] = (filename.split('.').shift() as string).split('_');
+  let [domain, region] = (filename.split('.').shift() as string).split('_');
+
+  region = region.toLowerCase();
+  domain = domain.toLowerCase();
 
   const fixedDomain = `https://${domain.replace('-', '.')}`;
 
