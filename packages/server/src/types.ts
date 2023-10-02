@@ -5,7 +5,6 @@ export interface User {
 }
 
 export interface Key {
-    id: string;
     user_id: string;
     key: string;
 }

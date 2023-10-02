@@ -7,15 +7,15 @@ class UserRepository {
   async init() {
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
-        user_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         email VARCHAR(255) NOT NULL UNIQUE,
-        password STRING NOT NULL
+        password VARCHAR(255) NOT NULL
       )
     `);
   }
 
   async createUser(user: User): Promise<User> {
-    const queryResult = await client.query("INSERT INTO users (user_id, email, password) VALUES ($1, $2, $3) RETURNING user_id", [
+    const queryResult = await client.query("INSERT INTO users (id, email, password) VALUES ($1, $2, $3) RETURNING id", [
       uuidv4(),
       user.email,
       user.password,
@@ -23,10 +23,10 @@ class UserRepository {
     return queryResult.rows[0];
   }
 
-  async deleteUserBy(field: string, value: string): Promise<string> {
-    const queryResult = await client.query(`DELETE FROM users WHERE ${field} = $1 RETURNING user_id`, [value]);
-    return queryResult.rows[0].user_id;
-  }
+    async deleteUserBy(field: string, value: string): Promise<string> {
+        const queryResult = await client.query(`DELETE FROM users WHERE ${field} = $1 RETURNING id`, [value]);
+        return queryResult.rows[0].id;
+    }
 
   async findUserBy(field: string, value: string): Promise<User | undefined> {
     const queryResult = await client.query(`SELECT * FROM users WHERE ${field} = $1 LIMIT 1`, [value]);

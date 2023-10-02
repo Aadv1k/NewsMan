@@ -5,10 +5,13 @@ import { createHash } from "crypto";
 import * as utils from "../utils";
 import UserModel from "../models/UserModel";
 
+
 export async function loginUser(req: Request, res: Response) {
   const { error: schemaError, value: postData } = userSchema.validate(req.body, { abortEarly: true });
 
+    
   if (schemaError) {
+      
     return res.status(400).json(new ErrorResponseBuilder()
       .withCode(400)
       .withMessage(schemaError.details[0].message)
@@ -30,7 +33,7 @@ export async function loginUser(req: Request, res: Response) {
     );
   }
 
-  const hashedPassword = createHash("md5").update(foundUser.password).digest("hex");
+  const hashedPassword = createHash("md5").update(postData.password).digest("hex");
 
   if (hashedPassword !== foundUser.password) {
     return res.status(401).json(new ErrorResponseBuilder()
@@ -95,6 +98,7 @@ export async function registerUser(req: Request, res: Response) {
       );
     }
 
+
     const hashedPassword = createHash("md5").update(postData.password).digest("hex");
     const newUser = await UserModel.createUser({
       email: postData.email,
@@ -127,28 +131,40 @@ export async function registerUser(req: Request, res: Response) {
 }
 
 export async function deleteUser(req: Request, res: Response) {
-  const { error: schemaError, value: postData } = userSchema.validate(req.body, { abortEarly: true });
+  const parsedToken = utils.parseAuthHeader(req.headers?.authorization ?? "");
 
-  if (schemaError) {
-    const validationErrors = schemaError.details.map(detail => ({
-      field: detail.context?.key,
-      message: detail.message,
-    }));
-
-    return res.status(400).json(
+  if (!parsedToken) {
+    return res.status(401).json(
       new ErrorResponseBuilder()
-        .withCode(400)
-        .withMessage("Validation failed")
-        .withStatus(ErrorStatus.badInput)
-        .withDetails(validationErrors)
+        .withCode(401)
+        .withMessage("Invalid or Missing `Authorization` header")
+        .withStatus(ErrorStatus.unauthorized)
+        .withDetails({})
         .build()
     );
   }
 
-  const userEmail = postData.email;
+  try {
+    utils.verifyToken(parsedToken);
+  } catch (error) {
+    console.error("Error verifying token:", error);
+
+    return res.status(401).json(
+      new ErrorResponseBuilder()
+        .withCode(401)
+        .withMessage("Invalid token")
+        .withStatus(ErrorStatus.unauthorized)
+        .withDetails({})
+        .build()
+    );
+  }
+
+
+  const token = utils.parseToken(parsedToken);
+  let userid = token.id;
 
   try {
-    const deletedUserId = await UserModel.deleteUserBy("email", userEmail);
+    const deletedUserId = await UserModel.deleteUserBy("id", userid);
 
     if (deletedUserId) {
       return res.status(200).json({ message: "User deleted successfully" });

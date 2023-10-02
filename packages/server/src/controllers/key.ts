@@ -1,18 +1,12 @@
 import { Request, Response } from "express";
 import { ErrorResponseBuilder, SuccessResponseBuilder, ErrorStatus } from "../ResponseBuilder";
 
+import KeyModel from "../models/KeyModel";
+
 import * as utils from "../utils";
 
-const parseAuthHeader = (auth: string): string | null => {
-    const a = auth.split(" ");
-    if (a.length !== 2) return null;
-    if (a[0].toLowerCase() != "bearer") return null;
-    return a.pop();
-
-}
-
 export async function createKey(req: Request, res: Response) {
-  const parsedToken = parseAuthHeader(req.headers?.authorization ?? "");
+  const parsedToken = utils.parseAuthHeader(req.headers?.authorization ?? "");
 
   if (!parsedToken) {
     return res.status(401).json(
@@ -25,9 +19,8 @@ export async function createKey(req: Request, res: Response) {
     );
   }
 
-  let token;
   try {
-    token = utils.verifyToken(parsedToken);
+    utils.verifyToken(parsedToken);
   } catch (error) {
     console.error("Error verifying token:", error);
 
@@ -41,17 +34,20 @@ export async function createKey(req: Request, res: Response) {
     );
   }
 
+
+  const token = utils.parseToken(parsedToken);
+
   try {
     const createdKey = await KeyModel.createKey({
       user_id: token.id,
-      key: "testkey123",
+      key: utils.randomString(16),
     });
 
-    return res.status(201).json({
-      message: "Key created successfully",
-      apiKey: createdKey.key,
-    });
-  } catch (error) {
+    return res.status(201).json(new SuccessResponseBuilder().withMessage("Key created successfully").withData({
+        api_key: createdKey.key
+    }));
+
+  } catch (error: any) {
     console.error("Error creating key:", error);
 
     return res.status(500).json(
