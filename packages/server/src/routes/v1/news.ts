@@ -1,12 +1,11 @@
 import express from "express";
 import { ErrorStatus, ErrorResponseBuilder } from "../../ResponseBuilder";
-import { createKey, deleteKey, getKey } from "../../controllers/key";
+import { getHeadlines } from "../../controllers/news";
 
 const router: express.Router = express.Router();
 
-router.post("/", createKey);
-router.get("/", getKey);
-router.delete("/", deleteKey);
+// router.get("/everything", getEverything);
+router.get("/headlines ", getHeadlines);
 
 router.all(["/", "/*"], (req, res) => {
     return res.status(405).json(new ErrorResponseBuilder()

@@ -8,6 +8,7 @@ export enum ErrorStatus {
 
 
 interface ErrorResponse {
+  status: "error";
   error: {
     code: number;
     message: string;
@@ -57,6 +58,7 @@ export class ErrorResponseBuilder {
 
   build(): ErrorResponse {
     return {
+      status: "error",
       error: this.error,
     };
   }

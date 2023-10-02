@@ -9,7 +9,6 @@ import UserModel from "../models/UserModel";
 export async function loginUser(req: Request, res: Response) {
   const { error: schemaError, value: postData } = userSchema.validate(req.body, { abortEarly: true });
 
-    
   if (schemaError) {
       
     return res.status(400).json(new ErrorResponseBuilder()
@@ -98,7 +97,6 @@ export async function registerUser(req: Request, res: Response) {
       );
     }
 
-
     const hashedPassword = createHash("md5").update(postData.password).digest("hex");
     const newUser = await UserModel.createUser({
       email: postData.email,
@@ -137,7 +135,7 @@ export async function deleteUser(req: Request, res: Response) {
     return res.status(401).json(
       new ErrorResponseBuilder()
         .withCode(401)
-        .withMessage("Invalid or Missing `Authorization` header")
+        .withMessage("Invalid or Missing `Authorization` header. Please provide a valid JWT token in the `Authorization` header.")
         .withStatus(ErrorStatus.unauthorized)
         .withDetails({})
         .build()
@@ -152,27 +150,31 @@ export async function deleteUser(req: Request, res: Response) {
     return res.status(401).json(
       new ErrorResponseBuilder()
         .withCode(401)
-        .withMessage("Invalid token")
+        .withMessage("Invalid token. Your JWT token is invalid or has expired. Please obtain a new token.")
         .withStatus(ErrorStatus.unauthorized)
         .withDetails({})
         .build()
     );
   }
 
-
   const token = utils.parseToken(parsedToken);
-  let userid = token.id;
+  let userId = token.id;
 
   try {
-    const deletedUserId = await UserModel.deleteUserBy("id", userid);
+    const deletedUserId = await UserModel.deleteUserBy("id", userId);
 
     if (deletedUserId) {
-      return res.status(200).json({ message: "User deleted successfully" });
+      return res.status(200).json(
+        new SuccessResponseBuilder()
+          .withMessage("User deleted successfully.")
+          .withData({ deletedUserId })
+          .build()
+      );
     } else {
       return res.status(404).json(
         new ErrorResponseBuilder()
           .withCode(404)
-          .withMessage("User not found")
+          .withMessage("User not found. The user associated with this token does not exist.")
           .withStatus(ErrorStatus.notFound)
           .withDetails({})
           .build()
@@ -184,7 +186,7 @@ export async function deleteUser(req: Request, res: Response) {
     return res.status(500).json(
       new ErrorResponseBuilder()
         .withCode(500)
-        .withMessage("Internal server error")
+        .withMessage("Internal server error. An error occurred while deleting the user.")
         .withStatus(ErrorStatus.internalError)
         .withDetails({
           error: error.message,

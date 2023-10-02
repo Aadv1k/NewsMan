@@ -1,6 +1,6 @@
 import express from "express";
 import { ErrorStatus, ErrorResponseBuilder } from "../../ResponseBuilder";
-import { registerUser, loginUser,  } from "../../controllers/user";
+import { registerUser, loginUser,  deleteUser } from "../../controllers/user";
 
 const router: express.Router = express.Router();
 
