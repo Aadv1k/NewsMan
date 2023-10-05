@@ -6,6 +6,7 @@ import { ThemeProvider } from '@mui/material/styles';
 
 import MuiTheme from "./MuiTheme";
 
+import GlobalStyles from '@mui/material/GlobalStyles';
 import * as Colors from "@mui/material/colors";
 import { PrimaryButton, SecondaryButton } from './components/mui/Button';
 
@@ -24,10 +25,13 @@ function App() {
   return (
     <>
         <ThemeProvider theme={MuiTheme}>
+            <GlobalStyles styles={{ body: { backgroundColor: "cccccc" } }} />
+
             <CssBaseline>
                 <Box sx={{ maxWidth: "60rem", margin: "0 auto"}}>
                     <Navbar />
-                    <Stack spacing={4} alignItems="center" sx={{ padding: ".75rem", marginBlock: "4.25rem 2.5rem"}}>
+
+                    <Stack spacing={4} alignItems="center" sx={{ padding: ".75rem", marginBlock: "1.25rem"}}>
 
                         <Stack spacing={1} alignItems="center">
                             <Typography component="h1" variant="h1" sx={{ fontFamily: "headingFontFamily", letterSpacing: "-0.025em", maxWidth: "20ch", textAlign: "center" }}>
@@ -44,9 +48,16 @@ function App() {
                                        }}>Get a free key</PrimaryButton> </Stack>
 
 
+
+                    <Box sx={{ position: "relative", overflow: "visible" }}>
+                        <Box sx={{ right: "-10%", bottom: "-50%", width: "500px", height: "500px", backgroundColor: Colors.indigo[100], position: "absolute", borderRadius: "9999px", filter: "blur(30px)"}}> </Box>
+
+                        <Box sx={{ left: "-15%", top: "-20%", width: "500px", height: "500px", backgroundColor: Colors.red[100], position: "absolute", borderRadius: "9999px", filter: "blur(30px)"}}> </Box>
+
                 <DemoCard method="GET" data={{}} url="https://newsman.host-here.app/v1/headlines?q=YOUR_API_KEY"/>
                 </Box>
 
+                    </Box>
 
 
             </CssBaseline>

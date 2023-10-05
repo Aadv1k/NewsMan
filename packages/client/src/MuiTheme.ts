@@ -6,6 +6,10 @@ const theme = createTheme({
       main: "#232c34",
       light: "#3c4c5a"
     },
+
+    background: {
+      default: "#fffeff"
+    }
   },
     typography: {
        "fontFamily": `"Inter", "Helvetica", "Arial", sans-serif`,

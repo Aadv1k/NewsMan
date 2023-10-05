@@ -156,7 +156,13 @@ const exampleData = {
 
 function DemoCard({ method, data, url }: DemoCardProps) {
   return (
-      <Card variant="outlined" sx={{ width: "90%", margin: "1.25rem auto"}}>
+      <Card variant="outlined" sx={{
+                    width: "90%",
+                    margin: "1.25rem auto",
+                    backgroundColor: "rgba(255, 255, 255, 0.6)",
+                    backdropFilter: "blur(7px)",
+                    borderRadius: "10px",
+                }}>
           <CardContent  sx={{
                             padding: "0",
                             "&:last-child": {
@@ -168,7 +174,7 @@ function DemoCard({ method, data, url }: DemoCardProps) {
            <Typography color="grey.600" fontFamily="monospace">{url}</Typography>
         </Stack>
 
-              <SyntaxHighlighter language="json" style={syntaxStyle} customStyle={{ margin: 0, overflow: "scroll", maxHeight: "25rem", padding: "0.75rem" }}>
+              <SyntaxHighlighter language="json" style={syntaxStyle} customStyle={{ background: "none", margin: 0, overflow: "scroll", maxHeight: "23rem", padding: "0.75rem" }}>
                   {JSON.stringify(exampleData, null, 2)}
               </SyntaxHighlighter>
       </CardContent>
