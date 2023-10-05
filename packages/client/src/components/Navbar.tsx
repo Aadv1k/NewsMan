@@ -2,7 +2,12 @@ import Button from "./Button";
 
 import { Link } from 'react-router-dom';
 
+import { useContext } from "react";
+import GlobalContext from "../GlobalContext";
+
 export default function Navbar() {
+   const globalContext = useContext(GlobalContext);
+      
     return (
         <nav className="p-4 flex justify-between items-center max-w-5xl mx-auto">
             <span className="font-bold text-2xl">NewsMan</span>
