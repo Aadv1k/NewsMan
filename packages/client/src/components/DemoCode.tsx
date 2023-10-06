@@ -195,8 +195,8 @@ function DemoCard({ method, data, url }: DemoCardProps) {
       sx={{
         width: "90%",
         margin: "1.25rem auto",
-        backgroundColor: "rgba(255, 255, 255, 0.5)",
-        backdropFilter: "blur(10px)",
+        backgroundColor: "rgba(255, 255, 255, 0.4)",
+        backdropFilter: "blur(25px)",
         borderRadius: "10px",
       }}
     >

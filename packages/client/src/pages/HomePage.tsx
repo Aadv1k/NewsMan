@@ -52,44 +52,29 @@ export default function HomePage() {
       <Box sx={{ position: "relative", height: "fit-content" }}>
         <Box
           sx={{
-            top: "-5%",
-            left: "-30%",
-            width: "450px",
-            height: "450px",
-            backgroundColor: Colors.indigo[100],
+            bottom: "0",
+            right: "5%",
+            width: "350px",
+            height: "350px",
+            backgroundColor: Colors.red[100],
             position: "absolute",
             borderRadius: "9999px",
-            filter: "blur(100px)",
-
-            "@media (min-width: 650px)": {
-              width: "500px",
-              height: "500px",
-              top: "-10%",
-              left: "-10%",
-            },
+            filter: "blur(30px)"
           }}
         />
 
         <Box
           sx={{
-            bottom: "-5%",
-            right: "-30%",
-            width: "450px",
-            height: "450px",
-            backgroundColor: Colors.red[100],
+            top: "0",
+            left: "5%",
+            width: "250px",
+            height: "250px",
+            backgroundColor: Colors.blue[100],
             position: "absolute",
             borderRadius: "9999px",
-            filter: "blur(50px)",
-            "@media (min-width: 650px)": {
-              width: "500px",
-              height: "500px",
-              bottom: "-30%",
-              right: "-10%",
-            },
+            filter: "blur(35px)"
           }}
-        >
-          {" "}
-        </Box>
+        />
 
         <DemoCard
           method="GET"
