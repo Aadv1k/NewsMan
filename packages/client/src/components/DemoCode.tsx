@@ -159,8 +159,8 @@ function DemoCard({ method, data, url }: DemoCardProps) {
       <Card variant="outlined" sx={{
                     width: "90%",
                     margin: "1.25rem auto",
-                    backgroundColor: "rgba(255, 255, 255, 0.6)",
-                    backdropFilter: "blur(7px)",
+                    backgroundColor: "rgba(255, 255, 255, 0.5)",
+                    backdropFilter: "blur(10px)",
                     borderRadius: "10px",
                 }}>
           <CardContent  sx={{
@@ -174,7 +174,7 @@ function DemoCard({ method, data, url }: DemoCardProps) {
            <Typography color="grey.600" fontFamily="monospace">{url}</Typography>
         </Stack>
 
-              <SyntaxHighlighter language="json" style={syntaxStyle} customStyle={{ background: "none", margin: 0, overflow: "scroll", maxHeight: "23rem", padding: "0.75rem" }}>
+              <SyntaxHighlighter language="jsonn" style={syntaxStyle} customStyle={{ background: "none", margin: 0, overflow: "scroll", maxHeight: "23rem", padding: "0.75rem" }}>
                   {JSON.stringify(exampleData, null, 2)}
               </SyntaxHighlighter>
       </CardContent>

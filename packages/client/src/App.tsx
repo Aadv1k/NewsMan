@@ -49,10 +49,44 @@ function App() {
 
 
 
-                    <Box sx={{ position: "relative", overflow: "visible" }}>
-                        <Box sx={{ right: "-10%", bottom: "-50%", width: "500px", height: "500px", backgroundColor: Colors.indigo[100], position: "absolute", borderRadius: "9999px", filter: "blur(30px)"}}> </Box>
+                    <Box sx={{ position: "relative", height: "fit-content" }}>
 
-                        <Box sx={{ left: "-15%", top: "-20%", width: "500px", height: "500px", backgroundColor: Colors.red[100], position: "absolute", borderRadius: "9999px", filter: "blur(30px)"}}> </Box>
+                        <Box sx={{
+                                 top: "-5%",
+                                 left: "-30%",
+                                 width: "450px",
+                                 height: "450px",
+                                 backgroundColor: Colors.indigo[100],
+                                 position: "absolute",
+                                 borderRadius: "9999px",
+                                 filter: "blur(100px)",
+
+                                 "@media (min-width: 650px)": {
+                                     width: "500px",
+                                     height: "500px",
+                                     top: "-10%",
+                                     left: "-10%",
+                                 }
+                             }}> </Box>
+
+
+                        <Box sx={{
+                                 bottom: "-5%",
+                                 right: "-30%",
+                                 width: "450px",
+                                 height: "450px",
+                                 backgroundColor: Colors.red[100],
+                                 position: "absolute",
+                                 borderRadius: "9999px",
+                                 filter: "blur(50px)",
+                                 "@media (min-width: 650px)": {
+                                     width: "500px",
+                                     height: "500px",
+                                     bottom: "-30%",
+                                     right: "-10%",
+                                 }
+                             }}> </Box>
+
 
                 <DemoCard method="GET" data={{}} url="https://newsman.host-here.app/v1/headlines?q=YOUR_API_KEY"/>
                 </Box>
