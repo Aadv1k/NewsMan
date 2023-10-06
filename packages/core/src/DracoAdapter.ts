@@ -10,7 +10,7 @@ export interface DQLHtmlElement {
   children: Array<DQLHtmlElement>;
 }
 
-interface DQLObject {
+export interface DQLObject {
   type: 'JSON' | 'HTML';
   value: DQLHtmlElement;
 }
@@ -96,5 +96,5 @@ export async function runQueryAndGetVars(query: string) {
       throw new Error(`ERROR: unable to fetch headlines due to DracoQL error: ${error.message}`);
     }
 
-    return Object.values(dracoInterpreter.NS as any).filter((dqlVar: any) => dqlVar.type !== 'HTML') as Array<DQLObject>;
+    return dracoInterpreter.NS;
 }

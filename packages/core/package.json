@@ -23,6 +23,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "dracoql": "^0.4.1"
+    "dracoql": "^0.4.1",
+    "node-html-parser": "^6.1.10"
   }
 }

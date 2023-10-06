@@ -77,6 +77,9 @@ importers:
       dracoql:
         specifier: ^0.4.1
         version: 0.4.1(typescript@5.2.2)
+      node-html-parser:
+        specifier: ^6.1.10
+        version: 6.1.10
     devDependencies:
       '@types/jest':
         specifier: ^29.5.5
