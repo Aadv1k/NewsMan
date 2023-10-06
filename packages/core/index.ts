@@ -1,5 +1,6 @@
 import provider from "./src/";
+import cacheFactory from "./src/";
 
 (async () => {
-    console.log(await provider.fetchHeadlines());
+    console.log(await provider.fetchAllHeadlines({}));
 })();
