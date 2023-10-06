@@ -4,14 +4,23 @@ import { ThemeProvider } from "@mui/material/styles";
 
 import MuiTheme from "./MuiTheme";
 import HomePage from "./pages/HomePage";
+import SignUpPage from "./pages/SignUpPage";
+import LoginPage from "./pages/LoginPage";
+
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 function App() {
   return (
     <>
       <ThemeProvider theme={MuiTheme}>
-        <GlobalStyles styles={{ body: { backgroundColor: "cccccc" } }} />
         <CssBaseline>
-          <HomePage />
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/signup" element={<SignUpPage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                </Routes>
+            </BrowserRouter>
         </CssBaseline>
       </ThemeProvider>
     </>

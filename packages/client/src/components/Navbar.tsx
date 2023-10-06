@@ -27,6 +27,8 @@ import MenuItem from "@mui/material/MenuItem";
 
 import Divider from "@mui/material/Divider";
 
+import Logo from "./Logo";
+
 const Appbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const isMobile = useMediaQuery("(max-width:600px)");
@@ -38,14 +40,8 @@ const Appbar = () => {
       justifyContent="space-between"
       sx={{ padding: ".75rem", margin: "0 auto" }}
     >
-      <Typography
-        variant="h5"
-        component="div"
-        fontFamily="headingFontFamily"
-        sx={{ color: "black", fontWeight: "bold", width: "fit-content" }}
-      >
-        NewsMan
-      </Typography>
+
+        <Logo />
 
       {isMobile && (
         <IconButton aria-label="delete" onClick={() => setMobileMenuOpen(true)}>
