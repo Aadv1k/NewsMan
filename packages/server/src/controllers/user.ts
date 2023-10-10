@@ -5,42 +5,67 @@ import { createHash } from "crypto";
 import * as utils from "../utils";
 import UserModel from "../models/UserModel";
 
+import Joi from "joi";
+
+const schema = Joi.object({
+  email: Joi.string()
+    .email({ tlds: { allow: false } })
+    .trim()
+    .required()
+    .messages({
+      'string.email': 'Please enter a valid email address.',
+      'string.empty': 'Email is required.',
+    }),
+  password: Joi.string()
+    .trim()
+    .required()
+    .messages({
+      'string.empty': 'Password is required.',
+    }),
+});
 
 export async function loginUser(req: Request, res: Response) {
-  const { error: schemaError, value: postData } = userSchema.validate(req.body, { abortEarly: true });
+  const { error: validationError, value: postData } = schema.validate(req.body, { abortEarly: false });
 
-  if (schemaError) {
-      
-    return res.status(400).json(new ErrorResponseBuilder()
-      .withCode(400)
-      .withMessage(schemaError.details[0].message)
-      .withStatus(ErrorStatus.badInput)
-      .withDetails(schemaError.details.map(detail => ({ field: detail.context?.key, message: detail.message })))
-      .build()
+  if (validationError) {
+    const validationErrors = validationError.details.map((detail) => ({
+      field: detail.context?.key,
+      message: detail.message,
+    }));
+
+    return res.status(400).json(
+      new ErrorResponseBuilder()
+        .withCode(400)
+        .withMessage('Validation error. Please check your input.')
+        .withStatus(ErrorStatus.badInput)
+        .withDetails(validationErrors)
+        .build()
     );
   }
 
-  const foundUser = await UserModel.findUserBy("email", postData.email);
+  const foundUser = await UserModel.findUserBy('email', postData.email);
 
   if (!foundUser) {
-    return res.status(404).json(new ErrorResponseBuilder()
-      .withCode(404)
-      .withMessage("Unable to find a user with that email, try registering for an account.")
-      .withStatus(ErrorStatus.notFound)
-      .withDetails({})
-      .build()
+    return res.status(404).json(
+      new ErrorResponseBuilder()
+        .withCode(404)
+        .withMessage('Unable to find a user with that email, try registering for an account.')
+        .withStatus(ErrorStatus.notFound)
+        .withDetails({})
+        .build()
     );
   }
 
-  const hashedPassword = createHash("md5").update(postData.password).digest("hex");
+  const hashedPasswordFromRequest = createHash('md5').update(postData.password).digest('hex');
 
-  if (hashedPassword !== foundUser.password) {
-    return res.status(401).json(new ErrorResponseBuilder()
-      .withCode(401)
-      .withMessage("Invalid password for the user")
-      .withStatus(ErrorStatus.unauthorized)
-      .withDetails({})
-      .build()
+  if (hashedPasswordFromRequest !== foundUser.password) {
+    return res.status(401).json(
+      new ErrorResponseBuilder()
+        .withCode(401)
+        .withMessage('Invalid password for the user')
+        .withStatus(ErrorStatus.unauthorized)
+        .withDetails({})
+        .build()
     );
   }
 
@@ -48,28 +73,31 @@ export async function loginUser(req: Request, res: Response) {
   try {
     token = utils.generateToken({ id: foundUser.id });
   } catch (error: any) {
-    return res.status(500).json(new ErrorResponseBuilder()
-      .withCode(500)
-      .withMessage("Something went wrong while attempting to generate JWT token")
-      .withStatus(ErrorStatus.internalError)
-      .withDetails({
-        error: error.message,
-      })
-      .build()
+    return res.status(500).json(
+      new ErrorResponseBuilder()
+        .withCode(500)
+        .withMessage('Something went wrong while attempting to generate JWT token')
+        .withStatus(ErrorStatus.internalError)
+        .withDetails({
+          error: error.message,
+        })
+        .build()
     );
   }
 
-  return res.status(200).json(new SuccessResponseBuilder()
-    .withMessage("Successfully logged in for the user")
-    .withData({
-      user: {
-        email: foundUser.email,
-        token: token,
-      }
-    })
-    .build()
+  return res.status(200).json(
+    new SuccessResponseBuilder()
+      .withMessage('Successfully logged in for the user')
+      .withData({
+        user: {
+          email: foundUser.email,
+          token: token,
+        },
+      })
+      .build()
   );
 }
+
 
 export async function registerUser(req: Request, res: Response) {
   const { error: schemaError, value: postData } = userSchema.validate(req.body, { abortEarly: true });

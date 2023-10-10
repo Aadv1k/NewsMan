@@ -106,7 +106,10 @@ export default function GenericForm({ title, onSubmit, subtitle, linkTo }: Gener
             type="submit"
             fullWidth
             variant="contained"
-            sx={{ mt: 3, mb: 2 }}
+            sx={{
+                  mt: 3, mb: 2,
+                  padding: ".75rem 1.75rem",
+                }}
           >
             { title }
           </PrimaryButton>

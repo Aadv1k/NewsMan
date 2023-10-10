@@ -1,4 +1,5 @@
 import React from "react";
+import { Link as RouterLink } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -40,8 +41,7 @@ const Appbar = () => {
       justifyContent="space-between"
       sx={{ padding: ".75rem", margin: "0 auto" }}
     >
-
-        <Logo />
+      <Logo />
 
       {isMobile && (
         <IconButton aria-label="delete" onClick={() => setMobileMenuOpen(true)}>
@@ -56,12 +56,12 @@ const Appbar = () => {
       >
         <List>
           <ListItem disablePadding>
-            <ListItemButton>
+            <ListItemButton component={RouterLink} to="/documentation" >
               <ListItemText primary="Documentation" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton>
+            <ListItemButton component={RouterLink} to="/github">
               <ListItemText primary="GitHub" />
             </ListItemButton>
           </ListItem>
@@ -69,12 +69,12 @@ const Appbar = () => {
           <Divider />
 
           <ListItem disablePadding>
-            <ListItemButton>
+            <ListItemButton component={RouterLink} to="/login">
               <ListItemText primary="Login" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton>
+            <ListItemButton component={RouterLink} to="/signup">
               <ListItemText primary="Sign Up" />
             </ListItemButton>
           </ListItem>
@@ -84,10 +84,10 @@ const Appbar = () => {
       {!isMobile && (
         <>
           <Stack direction="row" spacing={1} alignItems="center">
-            <Link sx={{ color: Colors.grey[600] }} href="#" underline="none">
+            <Link component={RouterLink} to="/documentation">
               Documentation
             </Link>
-            <Link sx={{ color: Colors.grey[600] }} href="#" underline="none">
+            <Link component={RouterLink} to="https://github.com/aadv1k/newsman" target="_blank">
               GitHub
             </Link>
           </Stack>
@@ -98,11 +98,20 @@ const Appbar = () => {
               customSx={{
                 border: "none",
                 "&:hover": { border: "none" },
+                    textDecoration: 'none', color: "inherit" 
               }}
+                component={RouterLink}
+                to="/login"
             >
-              Login
+                Login
             </SecondaryButton>
-            <PrimaryButton size="medium">Sign Up</PrimaryButton>
+            <PrimaryButton size="medium"
+                component={RouterLink}
+                to="/signup"
+                customSx={{ color: "white" }}
+            >
+                Sign Up
+            </PrimaryButton>
           </Stack>
         </>
       )}

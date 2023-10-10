@@ -2,6 +2,8 @@ import * as Colors from "@mui/material/colors";
 import { Stack, Box, Typography } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
+import { Link as RouterLink } from "react-router-dom";
+
 import DemoCard from "../components/DemoCode";
 import Navbar from "../components/Navbar";
 import { PrimaryButton, SecondaryButton } from "../components/mui/Button";
@@ -44,9 +46,11 @@ export default function HomePage() {
             padding: ".75rem 1.75rem",
             borderRadius: ".75rem",
           }}
+            component={RouterLink}
+            to="/signup"
         >
           Get a free key
-        </PrimaryButton>{" "}
+        </PrimaryButton>
       </Stack>
 
       <Box sx={{ position: "relative", height: "fit-content" }}>
