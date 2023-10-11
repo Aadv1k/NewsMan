@@ -46,7 +46,6 @@ export default function LoginPage() {
 
   const handleFormSubmit = async (data) => {
     try {
-        /*
       const res = await fetch(`${import.meta.env.VITE_API_URL}/v1/users/login`, {
         method: "POST",
         headers: {
@@ -56,11 +55,11 @@ export default function LoginPage() {
           email: data.email,
           password: data.password,
         }),
-      });*/
+      });
 
-     const resData = exampleData;
+     const resData = await res.json();
 
-      if (resData.error) {
+      if (resData?.error) {
         const errorMessage = resData.error.message;
         setSnackbar({
           ...snackbar,
@@ -72,6 +71,7 @@ export default function LoginPage() {
 
       //const { token: jwtToken, email: userEmail } = (await res.json()).data.user;
       const { token: jwtToken, email: userEmail } = resData.data.user;
+        console.log(jwtToken);
       const [header, payload, signature] = jwtToken.split(".");
       const { id } = JSON.parse(atob(payload));
 

@@ -221,7 +221,7 @@ function DemoCard({ method, data, url }: DemoCardProps) {
         </Stack>
 
         <SyntaxHighlighter
-          language="jsonn"
+          language="json"
           style={syntaxStyle}
           customStyle={{
             background: "none",
