@@ -24,10 +24,21 @@ export async function createKey(req: Request, res: Response) {
   } catch (error) {
     console.error("Error verifying token:", error);
 
+    if (error instanceof TokenExpiredError) {
+      return res.status(401).json(
+        new ErrorResponseBuilder()
+          .withCode(401)
+          .withMessage("Token has expired. Please obtain a new token.")
+          .withStatus(ErrorStatus.unauthorized)
+          .withDetails({})
+          .build()
+      );
+    }
+
     return res.status(401).json(
       new ErrorResponseBuilder()
         .withCode(401)
-        .withMessage("Invalid token. Your JWT token is invalid or has expired. Please obtain a new token.")
+        .withMessage("Invalid token. Your JWT token is invalid. Please obtain a valid token.")
         .withStatus(ErrorStatus.unauthorized)
         .withDetails({})
         .build()
@@ -60,10 +71,10 @@ export async function createKey(req: Request, res: Response) {
         .withMessage("Key created successfully.")
         .withData({
           api_key: createdKey.key,
-          instructions: "Please keep this API key secure. It will be needed for authentication in future requests.",
+          instructions: "Please keep this API key secure. It will be needed for authentication in future requests."
         })
+        .build()
     );
-
   } catch (error: any) {
     console.error("Error creating key:", error);
 
@@ -180,7 +191,7 @@ export async function getKey(req: Request, res: Response) {
 
     if (key) {
       return res.status(200).json(
-        new SuccessResponseBuilder()
+      new SuccessResponseBuilder()
           .withMessage("Key found successfully.")
           .withData({ key })
           .build()
