@@ -7,6 +7,9 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 
+import * as Colors from '@mui/material/Colors';
+
+
 import { Link as RouterLink } from 'react-router-dom';
 
 import { PrimaryButton } from "./mui/Button.tsx";
@@ -95,20 +98,22 @@ export default function GenericForm({ title, onSubmit, subtitle, linkTo }: Gener
             control={
               <Checkbox
                 name="rememberMe"
-                color="primary"
+                size="small"
                 checked={formData.rememberMe}
                 onChange={handleInputChange}
               />
             }
+              sx={{ color: Colors.grey[600] }}
+            
             label="Remember me"
           />
             <PrimaryButton
             type="submit"
             fullWidth
             variant="contained"
-            sx={{
+            customSx={{
                   mt: 3, mb: 2,
-                  padding: ".75rem 1.75rem",
+                  padding: ".5rem 1.75rem",
                 }}
           >
             { title }

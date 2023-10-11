@@ -1,24 +1,52 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Box, Stack, Typography } from "@mui/material";
-import Logo from "../components/Logo";
-import GenericForm from "../components/GenericForm";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert from "@mui/material/Alert";
+import { useNavigate } from "react-router-dom";
+
+import UserContext from "../UserContext";
+import Logo from "../components/Logo";
+import GenericForm from "../components/GenericForm";
+
+const exampleData = {
+    "status": "success",
+    "message": "Successfully registered and logged in for the user",
+    "data": {
+        "user": {
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImUzNDk5NWFlLWQ5ZGQtNDQ4MS05ZmM3LTIzMWI2YzJlMDI4NyIsImlhdCI6MTY5NjIzMDUxOCwiZXhwIjoxNjk2MjM0MTE4fQ._jEGlWD3ZmBljR43-NoC1tCwO1dGI-Gd4G-DK16Afjs",
+            "email": "aadv1k@outlook.com"
+        }
+    }
+}
 
 export default function LoginPage() {
-  const [isSnackbarOpen, setIsSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState("error");
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    type: "error",
+  });
+
+  const [user, setUser] = useContext(UserContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user.token) {
+      navigate("/account");
+    }
+  }, [user, navigate]);
 
   const handleSnackbarClose = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setIsSnackbarOpen(false);
+    if (reason === "clickaway") return;
+
+    setSnackbar({
+      ...snackbar,
+      open: false,
+    });
   };
 
   const handleFormSubmit = async (data) => {
     try {
+        /*
       const res = await fetch(`${import.meta.env.VITE_API_URL}/v1/users/login`, {
         method: "POST",
         headers: {
@@ -28,25 +56,51 @@ export default function LoginPage() {
           email: data.email,
           password: data.password,
         }),
-      });
+      });*/
 
+     const resData = exampleData;
 
-      const resData = await res.json();
-      if (!res.ok) {
-        throw new Error(resData.error.message); 
+      if (resData.error) {
+        const errorMessage = resData.error.message;
+        setSnackbar({
+          ...snackbar,
+          open: true,
+          message: errorMessage,
+        });
+        return;
       }
 
-    const jwtToken = resData.data.user.token;
+      //const { token: jwtToken, email: userEmail } = (await res.json()).data.user;
+      const { token: jwtToken, email: userEmail } = resData.data.user;
+      const [header, payload, signature] = jwtToken.split(".");
+      const { id } = JSON.parse(atob(payload));
 
-    } catch (error: any) {
-      setSnackbarMessage(error.message);
-      setSnackbarSeverity("error");
-      setIsSnackbarOpen(true);
-      console.error(error);
+      setUser({
+        uid: id,
+        email: userEmail,
+        token: jwtToken,
+      });
+
+      setSnackbar({
+        ...snackbar,
+        open: true,
+        message: "Successful login! Redirecting...",
+        type: "success",
+      });
+
+      navigate("/");
+    } catch (error) {
+      console.error("Login error:", error);
+      setSnackbar({
+        ...snackbar,
+        open: true,
+        message: "An error occurred during login.",
+        type: "error",
+      });
     }
   };
 
-  return (
+  return !user.token ? (
     <Box sx={{ maxWidth: "60rem", margin: "0 auto" }}>
       <Stack
         as="nav"
@@ -65,8 +119,8 @@ export default function LoginPage() {
       />
 
       <Snackbar
-        open={isSnackbarOpen}
-        autoHideDuration={6000}
+        open={snackbar.open}
+        autoHideDuration={2000}
         onClose={handleSnackbarClose}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
@@ -74,11 +128,11 @@ export default function LoginPage() {
           elevation={6}
           variant="filled"
           onClose={handleSnackbarClose}
-          severity={snackbarSeverity}
+          severity={snackbar.type}
         >
-          {snackbarMessage}
+          {snackbar.message}
         </MuiAlert>
       </Snackbar>
     </Box>
-  );
+  ) : null;
 }
