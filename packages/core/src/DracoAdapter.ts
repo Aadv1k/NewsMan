@@ -46,7 +46,12 @@ export function serializeDQLHtmlElementToObject(element: DQLHtmlElement): DQLFla
         case 'h4':
         case 'h5':
         case 'h6':
-          flatObject.headings.push((node.children[0] as any)?.text || ''); // Why is TypeScript so insufferable?
+           const heading = node.children.map((e: any) => {
+               if (e?.tag) return e.children[0].text.trim()
+               return e?.text.trim()
+           }).filter(e => e.length).pop();
+
+          flatObject.headings.push(heading || '');
           break;
         case 'a':
           if ((node.children[0] as any)?.type === 'TextNode') {

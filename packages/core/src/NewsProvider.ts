@@ -68,32 +68,36 @@ export default class NewsProvider {
             const dqlHtmlObjects = Object.values(extractedDQLVars as any)
                 .filter((dqlVar: any) => dqlVar.type !== 'HTML') as Array<dracoAdapter.DQLObject>;
 
-            for (const childElement of dqlHtmlObjects[0].value.children) {
-                if ((childElement as any).type === 'TextNode') {
-                    continue;
+
+            for (const dqlHtmlObj of dqlHtmlObjects) {
+                for (const childElement of dqlHtmlObj.value.children) {
+                    if ((childElement as any).type === 'TextNode') {
+                        continue;
+                    }
+
+                    const flatObject = dracoAdapter.serializeDQLHtmlElementToObject(childElement);
+
+                    const article: NewsArticle = {
+                        title: flatObject.headings?.[0] || flatObject.links[0]?.text || flatObject.images[0]?.alt || '',
+                        url: utils.isRelativeURL(flatObject.links[0]?.href || '') ? `https://${source}/${flatObject.links[0]?.href || ''}` : flatObject.links[0]?.href || '',
+                        urlToImage: utils.sanitizeUrl(flatObject.images?.[0]?.src || '') || null,
+                        source,
+                        description: null,
+                        publishedAt: null,
+                    };
+
+                    const extractor = new ArticleInfoExtractor(article.url);
+                    await extractor.setup();
+
+                    article.description = extractor.getDescription();
+                    article.publishedAt = utils.convertToDate(extractor.getPublishedAt() || "");
+
+                    // NOTE(aadv1k): we can't reliably get the author due to the homogeneity of text-based data
+                    // article.author = extractor.getAuthor();
+
+                    newsArticles.push(article);
                 }
 
-                const flatObject = dracoAdapter.serializeDQLHtmlElementToObject(childElement);
-
-                const article: NewsArticle = {
-                    title: flatObject.headings?.[0] || flatObject.links[0]?.text || flatObject.images[0]?.alt || '',
-                    url: utils.isRelativeURL(flatObject.links[0]?.href || '') ? `https://${source}/${flatObject.links[0]?.href || ''}` : flatObject.links[0]?.href || '',
-                    urlToImage: utils.sanitizeUrl(flatObject.images?.[0]?.src || '') || null,
-                    source,
-                    description: null,
-                    publishedAt: null,
-                };
-
-                const extractor = new ArticleInfoExtractor(article.url);
-                await extractor.setup();
-
-                article.description = extractor.getDescription();
-                article.publishedAt = utils.convertToDate(extractor.getPublishedAt() || "");
-
-                // NOTE(aadv1k): we can't reliably get the author due to the homogeneity of text-based data
-                // article.author = extractor.getAuthor();
-
-                newsArticles.push(article);
             }
         } catch (error: any) {
             throw new Error(`ERROR: failed to parse DracoQL due to error: ${error.message}`);

@@ -12,6 +12,6 @@ const provider = new NewsProvider(
 
 (async () => {
     console.log(await provider.fetchAllHeadlines({
-        excludeDomains: [],
+        excludeDomains: ["india.com"],
     }));
 })()
