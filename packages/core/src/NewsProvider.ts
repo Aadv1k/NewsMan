@@ -7,11 +7,6 @@ import * as utils from './utils';
 
 import ArticleInfoExtractor from './ArticleInfoExtractor';
 
-export interface NewsSource {
-    id: string;
-    country: string;
-}
-
 export interface NewsArticle {
     title: string;
     url: string;
@@ -20,11 +15,6 @@ export interface NewsArticle {
     description: string | null;
     publishedAt: Date | null;
     urlToImage: string | null;
-}
-
-interface DQLTextNode {
-    type: 'TextNode';
-    text: string;
 }
 
 interface ProviderConfig {
@@ -44,14 +34,14 @@ export default class NewsProvider {
         this.defaultCountryCode = defaultCountryCode ?? 'in';
     }
 
-    async fetchHeadlinesForSource(source: NewsSource): Promise<NewsArticle[]> {
+    async fetchHeadlinesForSource(source: string): Promise<NewsArticle[]> {
         if (!this.headlineDirPath) {
             throw new Error('ERROR: fetchHeadlines cannot be used without specifying headlineDirPath');
         }
         return this.fetchDataForSource(source, this.headlineDirPath as string);
     }
 
-    async fetchEverythingForSource(source: NewsSource): Promise<NewsArticle[]> {
+    async fetchEverythingForSource(source: string): Promise<NewsArticle[]> {
         if (!this.everythingDirPath) {
             throw new Error('ERROR: fetchEverything cannot be used without specifying everythingDirPath');
         }
@@ -65,6 +55,7 @@ export default class NewsProvider {
         return this.fetchAndParseDQLFromDir(this.headlineDirPath, config);
     }
 
+    /*
     async getSources(): Promise<Array<NewsSource>> {
         const sources = [];
         const files = await fs.readdir(this.headlineDirPath as string);
@@ -78,14 +69,18 @@ export default class NewsProvider {
         }
         return sources;
     }
+    */
 
-    private async fetchDataForSource(source: NewsSource, dirpath: string): Promise<Array<NewsArticle>> {
-        const newsArticles = [];
-        const dqlPath = `${source.id.replace(/./, '-')}_${source.country}.dql`;
-        const fileDomain = `https://${source.id.replace(/./, '-')}`;
+    private async fetchDataForSource(source: string, dirpath: string): Promise<Array<NewsArticle>> {
+        const newsArticles: Array<NewsArticle> = [];
+
+        const sources = await fs.readdir(dirpath);
+        const foundSource = sources.find((e: string) => e.startsWith(source));
+
+        if (!foundSource) return [];
 
         try {
-            const dracoQLFileContent = await fs.readFile(path.join(dirpath, dqlPath), 'utf-8');
+            const dracoQLFileContent = await fs.readFile(path.join(dirpath, foundSource), 'utf-8');
             const extractedDQLVars = await dracoAdapter.runQueryAndGetVars(dracoQLFileContent);
             const dqlHtmlObjects = Object.values(extractedDQLVars as any)
                 .filter((dqlVar: any) => dqlVar.type !== 'HTML') as Array<dracoAdapter.DQLObject>;
@@ -99,9 +94,9 @@ export default class NewsProvider {
 
                 const article: NewsArticle = {
                     title: flatObject.headings?.[0] || flatObject.links[0]?.text || flatObject.images[0]?.alt || '',
-                    url: utils.isRelativeURL(flatObject.links[0]?.href || '') ? `${fileDomain}/${flatObject.links[0]?.href || ''}` : flatObject.links[0]?.href || '',
+                    url: utils.isRelativeURL(flatObject.links[0]?.href || '') ? `https://${source}/${flatObject.links[0]?.href || ''}` : flatObject.links[0]?.href || '',
                     urlToImage: utils.sanitizeUrl(flatObject.images?.[0]?.src || '') || null,
-                    source: fileDomain,
+                    source,
                     description: null,
                     publishedAt: null,
                     author: null,
@@ -111,45 +106,9 @@ export default class NewsProvider {
                 await extractor.setup();
 
                 article.description = extractor.getDescription();
-                article.publishedAt = utils.convertToDate(extractor.getPublishedAt() as string);
+                article.publishedAt = utils.convertToDate(extractor.getPublishedAt() || "");
                 article.author = extractor.getAuthor();
-                newsArticles.push(article);
-            }
-        } catch (error: any) {
-            throw new Error(`ERROR: failed to parse DracoQL due to error: ${error.message}`);
-        }
-        return newsArticles;
 
-
-        try {
-            const dracoQLFileContent = await fs.readFile(path.join(dirpath, dqlPath), 'utf-8');
-            const extractedDQLVars = await dracoAdapter.runQueryAndGetVars(dracoQLFileContent);
-            const dqlHtmlObjects = Object.values(extractedDQLVars as any)
-                .filter((dqlVar: any) => dqlVar.type !== 'HTML') as Array<dracoAdapter.DQLObject>;
-
-            for (const childElement of dqlHtmlObjects[0].value.children) {
-                if ((childElement as any).type === 'TextNode') {
-                    continue;
-                }
-
-                const flatObject = dracoAdapter.serializeDQLHtmlElementToObject(childElement);
-
-                const article: NewsArticle = {
-                    title: flatObject.headings?.[0] || flatObject.links[0]?.text || flatObject.images[0]?.alt || '',
-                    url: utils.isRelativeURL(flatObject.links[0]?.href || '') ? `${fileDomain}/${flatObject.links[0]?.href || ''}` : flatObject.links[0]?.href || '',
-                    urlToImage: utils.sanitizeUrl(flatObject.images?.[0]?.src || '') || null,
-                    source: fileDomain,
-                    description: null,
-                    publishedAt: null,
-                    author: null,
-                };
-
-                const extractor = new ArticleInfoExtractor(article.url);
-                await extractor.setup();
-
-                article.description = extractor.getDescription();
-                article.publishedAt = utils.convertToDate(extractor.getPublishedAt() as string);
-                article.author = extractor.getAuthor();
                 newsArticles.push(article);
             }
         } catch (error: any) {
@@ -160,21 +119,29 @@ export default class NewsProvider {
 
     private async fetchAndParseDQLFromDir(dirpath: string, config: ProviderConfig = {}): Promise<NewsArticle[]> {
         const { countryCode = this.defaultCountryCode, domains = [], excludeDomains = [] } = config;
-        const files = await fs.readdir(dirpath);
-        assert(files.length !== 0, `At least one DracoQL file is expected in ${dirpath}`);
+
+        const fileNames = await fs.readdir(dirpath);
+        assert(fileNames.length !== 0, `At least one DracoQL file is expected in ${dirpath}`);
 
         let newsArticles: NewsArticle[] = [];
 
-        for (const filepath of files) {
-            const [ domain, region ] = (filepath.split(".").shift() as any).split("_");
+        for (const fname of fileNames) {
+            const parsedFileName = utils.parseDqlFileName(fname);
+            if (!parsedFileName) continue; 
 
-            if (excludeDomains.some((e: string) => domain.includes(e)) || countryCode.toLowerCase() !== region) {
+            const { domain, language, country } = parsedFileName;
+
+            if (
+                excludeDomains.some((e: string) => domain.includes(e))
+                    || countryCode !== country
+            ) {
                 continue;
             }
 
-            const articles = await this.fetchDataForSource({ id: domain, country: region }, dirpath);
+            const articles = await this.fetchDataForSource(domain, dirpath);
             newsArticles = [...articles, ...newsArticles];
         }
         return newsArticles;
     }
 }
+

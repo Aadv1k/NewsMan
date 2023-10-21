@@ -49,34 +49,19 @@ export function sanitizeUrl(url: string): string {
     return url;
 }
 
-export const RegionCodes = new Set(["in", "us"]);
+export function parseDqlFileName(filename: string): { domain: string, country: string, language: string } | null {
+    const regex = /^([a-zA-Z.]+)_([a-zA-Z]+)_([a-zA-Z]+)\.dql$/;
+    const match = filename.match(regex);
 
-export interface DQLFileName {
-  region: string;
-  domain: string;
-}
+    if (!match) {
+        return null;
+    }
 
-export function isDQLFileNameValid(filename: string): boolean {
-  const pattern = /^[a-zA-Z0-9-]+_[a-z]+_[a-z]+\.dql$/;
-  return pattern.test(filename);
-}
+    const [, domain, language, country] = match;
 
-export function parseDQLFileName(filename: string): DQLFileName {
-  let [domain, region] = (filename.split('.').shift() as string).split('_');
-
-  region = region.toLowerCase();
-  domain = domain.toLowerCase();
-
-  const fixedDomain = `https://${domain.replace('-', '.')}`;
-
-  new URL(fixedDomain);
-
-  if (!RegionCodes.has(region)) {
-    throw new Error(`Invalid region: ${region}`);
-  }
-
-  return {
-    domain: fixedDomain,
-    region,
-  };
+    return {
+        domain,
+        country,
+        language
+    };
 }

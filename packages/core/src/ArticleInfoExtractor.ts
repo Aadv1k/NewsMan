@@ -8,7 +8,7 @@ export default class ArticleInfoExtractor {
 
     constructor(url: string) {
         this.url = url;
-        this.query = `VAR data = FETCH "${url}" CACHE 6e10 "./" AS HTML HEADLESS`;
+        this.query = `VAR data = FETCH "${url}" CACHE 6e5 "./" AS HTML`;
         this.htmlContentRoot = null;
     }
 
@@ -29,22 +29,13 @@ export default class ArticleInfoExtractor {
         if (!this.htmlContentRoot) {
             return null;
         }
-        const descriptionElement = this.htmlContentRoot.querySelectorAll("p").find((e: any) => {
-            const innerText = e.innerText.trim().toLowerCase().replace(/[\n\r]/g, '').trim();
-            return innerText.length > 200;
-        });
 
-        if (descriptionElement) {
-            const sanitizedDescription = descriptionElement.innerText
-                .trim()
-                .toLowerCase()
-                .replace(/[\n\r]/g, '')
-                .trim();
+        const descriptionElement = this.htmlContentRoot.querySelectorAll("p").filter((e: any) => {
+            const innerText = e.innerText.replace(/[\n\r]/g, '').trim();
+            return innerText.length > 250;
+        }).map((e: any) => e.innerText.trim());
 
-            return sanitizedDescription;
-        }
-
-        return null;
+        return descriptionElement.length > 0 ? descriptionElement.join(" ") : null;
     }
 
     getAuthor(): string | null {
@@ -65,22 +56,17 @@ export default class ArticleInfoExtractor {
 
         if (authorElement) {
             const authorText = authorElement.innerText.trim();
-            
-            const cleanAuthorText = authorText
-                .toLowerCase()
-                .replace(/(edited\s*by|by|written\s*by|author)/g, '')
-                .replace(/[^a-zA-Z\s]/g, '')
-                .trim();
 
-            const authorNameParts = cleanAuthorText.split(/\s+/);
-            let finalName = cleanAuthorText;
+            /*
+              const cleanAuthorText = authorText
+              .replace(/(edited\s*by|by|written\s*by|author)/g, '')
+              .replace(/\s+/g, ' ')
+              .replace(/[^a-zA-Z\s]/g, '')
+              .trim();*/
+            const cleanAuthorText = authorText.replace(/\n|\r/g, "").split(" ").filter((e: string) => e.length).slice(0, 3).filter((e: string) => e.toLowerCase() != "by").join(" ")
 
-            if (authorNameParts.length >= 2) {
-                const lastName = authorNameParts.pop()!;
-                const firstName = authorNameParts.join(' ');
-                finalName = `${firstName} ${lastName}`;
-            }
-            return finalName.length >= 30 ? null : cleanAuthorText;
+            return cleanAuthorText;
+
         }
 
         return null;
@@ -90,11 +76,13 @@ export default class ArticleInfoExtractor {
         if (!this.htmlContentRoot) {
             return null;
         }
-        const dateElement = this.htmlContentRoot.querySelectorAll("p, span").find((e: any) => e.innerText.toLowerCase().includes("updated"));
-        if (dateElement) {
-            const dateString = dateElement.innerText.trim().replace(/updated\:/i, "");
-            return dateString;
-        }
-        return null;
+
+        const dateRegex = /(Published|Updated)(:| At) (\w+ \d{1,2}, \d{4} \d{1,2}:\d{2} [APap][Mm] \w+)/;
+
+        const dateString = Array.from(this.htmlContentRoot.querySelectorAll("p, span"))
+            .map((e: any) => e.innerText.trim().replace(/\r\n/g, ""))
+            .find(e => e.match(dateRegex));
+
+        return dateString ?? null;
     }
 }
