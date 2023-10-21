@@ -11,6 +11,13 @@ const provider = new NewsProvider(
 
 
 (async () => {
-    console.log(await provider.fetchAllHeadlines({
-    }));
+    console.log(
+        JSON.stringify(
+            await provider.fetchAllHeadlines({
+                excludeDomains: ["ndtv.com"]
+            }),
+            null,
+            2
+        )
+    );
 })()

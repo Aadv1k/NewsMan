@@ -1,0 +1,6 @@
+VAR data = FETCH "https://www.hindustantimes.com/"
+  CACHE 6e5 "./"
+  HEADER "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/112.0"
+  AS HTML
+
+VAR d1 = EXTRACT "#topnews > section:nth-child(1) > div:nth-child(2)" FROM data

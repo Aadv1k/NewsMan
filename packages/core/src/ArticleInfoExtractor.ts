@@ -8,7 +8,7 @@ export default class ArticleInfoExtractor {
 
     constructor(url: string) {
         this.url = url;
-        this.query = `VAR data = FETCH "${url}" CACHE 6e5 "./" AS HTML`
+        this.query = `VAR data = FETCH "${url}" CACHE 6e5 "./" AS HTML HEADLESS`
         this.htmlContentRoot = null;
     }
 
@@ -73,11 +73,6 @@ export default class ArticleInfoExtractor {
             .map((e: any) => e.innerText.trim().replace(/\r\n/g, ""))
             .find(e => e.match(dateRegex))
             ?.replace(/(Updated|Published):\s*/, '');
-
-        if (!dateString) {
-            console.log(this.url);
-            console.log(this.htmlContentRoot.querySelectorAll("p, span"));
-        }
 
         return dateString ?? null;
     }

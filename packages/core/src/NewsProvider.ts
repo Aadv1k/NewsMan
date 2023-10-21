@@ -90,6 +90,9 @@ export default class NewsProvider {
 
                     article.description = extractor.getDescription();
                     article.publishedAt = utils.convertToDate(extractor.getPublishedAt() || "");
+                    article.title = extractor.getTitle() as string;
+
+                    if (!article.description && !article.publishedAt) continue;
 
                     // NOTE(aadv1k): we can't reliably get the author due to the homogeneity of text-based data
                     // article.author = extractor.getAuthor();
