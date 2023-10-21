@@ -8,7 +8,7 @@ export default class ArticleInfoExtractor {
 
     constructor(url: string) {
         this.url = url;
-        this.query = `VAR data = FETCH "${url}" CACHE 6e5 "./" AS HTML`;
+        this.query = `VAR data = FETCH "${url}" CACHE 6e5 "./" AS HTML HEADLESS`
         this.htmlContentRoot = null;
     }
 
@@ -44,7 +44,7 @@ export default class ArticleInfoExtractor {
         }
 
         const authorElement = this.htmlContentRoot.querySelectorAll("p, span").find((e: any) => {
-            const innerText = e.innerText.trim().toLowerCase().replace(/[\n\r]/g, '').trim();
+            const innerText = e.innerText.trim().replace(/[\n\r]/g, '').trim();
             const matches = innerText.match(/edited\s*by|by|written\s*by|author/g);
 
             if (matches && matches.length > 0) {
@@ -56,17 +56,7 @@ export default class ArticleInfoExtractor {
 
         if (authorElement) {
             const authorText = authorElement.innerText.trim();
-
-            /*
-              const cleanAuthorText = authorText
-              .replace(/(edited\s*by|by|written\s*by|author)/g, '')
-              .replace(/\s+/g, ' ')
-              .replace(/[^a-zA-Z\s]/g, '')
-              .trim();*/
-            const cleanAuthorText = authorText.replace(/\n|\r/g, "").split(" ").filter((e: string) => e.length).slice(0, 3).filter((e: string) => e.toLowerCase() != "by").join(" ")
-
-            return cleanAuthorText;
-
+            return authorText;
         }
 
         return null;
@@ -81,7 +71,13 @@ export default class ArticleInfoExtractor {
 
         const dateString = Array.from(this.htmlContentRoot.querySelectorAll("p, span"))
             .map((e: any) => e.innerText.trim().replace(/\r\n/g, ""))
-            .find(e => e.match(dateRegex));
+            .find(e => e.match(dateRegex))
+            ?.replace(/(Updated|Published):\s*/, '');
+
+        if (!dateString) {
+            console.log(this.url);
+            console.log(this.htmlContentRoot.querySelectorAll("p, span"));
+        }
 
         return dateString ?? null;
     }

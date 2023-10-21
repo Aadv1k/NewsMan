@@ -11,7 +11,6 @@ export interface NewsArticle {
     title: string;
     url: string;
     source: string;
-    author: string | null;
     description: string | null;
     publishedAt: Date | null;
     urlToImage: string | null;
@@ -55,22 +54,6 @@ export default class NewsProvider {
         return this.fetchAndParseDQLFromDir(this.headlineDirPath, config);
     }
 
-    /*
-    async getSources(): Promise<Array<NewsSource>> {
-        const sources = [];
-        const files = await fs.readdir(this.headlineDirPath as string);
-        for (const filepath of files) {
-            const [name, ext] = filepath.split('.');
-            const [id, country] = name.split('_');
-            sources.push({
-                id: id.replace(/-/, '.'),
-                country: country,
-            });
-        }
-        return sources;
-    }
-    */
-
     private async fetchDataForSource(source: string, dirpath: string): Promise<Array<NewsArticle>> {
         const newsArticles: Array<NewsArticle> = [];
 
@@ -99,7 +82,6 @@ export default class NewsProvider {
                     source,
                     description: null,
                     publishedAt: null,
-                    author: null,
                 };
 
                 const extractor = new ArticleInfoExtractor(article.url);
@@ -107,7 +89,9 @@ export default class NewsProvider {
 
                 article.description = extractor.getDescription();
                 article.publishedAt = utils.convertToDate(extractor.getPublishedAt() || "");
-                article.author = extractor.getAuthor();
+
+                // NOTE(aadv1k): we can't reliably get the author due to the homogeneity of text-based data
+                // article.author = extractor.getAuthor();
 
                 newsArticles.push(article);
             }
