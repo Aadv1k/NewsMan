@@ -4,5 +4,5 @@ VAR data = FETCH "https://www.ndtv.com/"
   AS HTML
 
 
-// VAR d1 = EXTRACT "#topstoriesdata > ul:nth-child(2)" FROM data
+VAR d1 = EXTRACT "#topstoriesdata > ul:nth-child(2)" FROM data
 VAR d2 = EXTRACT ".latest_widget > ul:nth-child(2)" FROM data

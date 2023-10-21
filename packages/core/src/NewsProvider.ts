@@ -68,7 +68,6 @@ export default class NewsProvider {
             const dqlHtmlObjects = Object.values(extractedDQLVars as any)
                 .filter((dqlVar: any) => dqlVar.type !== 'HTML') as Array<dracoAdapter.DQLObject>;
 
-
             for (const dqlHtmlObj of dqlHtmlObjects) {
                 for (const childElement of dqlHtmlObj.value.children) {
                     if ((childElement as any).type === 'TextNode') {

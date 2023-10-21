@@ -36,6 +36,7 @@ export function serializeDQLHtmlElementToObject(element: DQLHtmlElement): DQLFla
       images: [],
     };
 
+
     function processElement(node: DQLHtmlElement) {
       if (!node.tag) return;
 
@@ -46,10 +47,17 @@ export function serializeDQLHtmlElementToObject(element: DQLHtmlElement): DQLFla
         case 'h4':
         case 'h5':
         case 'h6':
-           const heading = node.children.map((e: any) => {
-               if (e?.tag) return e.children[0].text.trim()
-               return e?.text.trim()
-           }).filter(e => e.length).pop();
+           let heading;
+              try {
+                  heading = node.children.map((e: any) => {
+                      if (e?.tag) return e.children?.[0].text.trim()
+                      return e?.text.trim()
+                  }).filter(e => e.length).pop();
+
+              } catch {
+                  const elem = node.children.filter(e => e?.children?.length).pop();
+                  heading = elem?.children.map((e: any) => e?.text).pop();
+              }
 
           flatObject.headings.push(heading || '');
           break;
@@ -69,6 +77,8 @@ export function serializeDQLHtmlElementToObject(element: DQLHtmlElement): DQLFla
         case 'article':
         case 'div':
         case 'li':
+        case 'figure':
+        case 'figcaption':
           break;
         default:
           throw new Error(`ERROR unhandled tag: ${node.tag}`);
