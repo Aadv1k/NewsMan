@@ -1,8 +1,8 @@
 import * as draco from "dracoql";
 
 export interface DQLTextNode {
-    type: string;
-    text: string;
+  type: string;
+  text: string;
 }
 
 export interface DQLHtmlElement {
@@ -15,7 +15,6 @@ export interface DQLHtmlElement {
   children: Array<DQLHtmlElement>;
 }
 
-
 export interface DQLFlatObject {
   headings: string[];
   links: { href: string; text: string }[];
@@ -24,11 +23,13 @@ export interface DQLFlatObject {
 }
 
 export interface DQLObject {
-  type: 'JSON' | 'HTML';
+  type: "JSON" | "HTML";
   value: DQLHtmlElement;
 }
 
-export function serializeDQLHtmlElementToObject(element: DQLHtmlElement): DQLFlatObject {
+export function serializeDQLHtmlElementToObject(
+  element: DQLHtmlElement
+): DQLFlatObject {
   const flatObject: DQLFlatObject = {
     headings: [],
     links: [],
@@ -42,7 +43,9 @@ export function serializeDQLHtmlElementToObject(element: DQLHtmlElement): DQLFla
         if (child.tag === "a" || child.tag === "img") {
           return extractTextFromElement(child);
         } else {
-          return child.tag === "p" ? child.attributes.alt : extractTextFromElement(child);
+          return child.tag === "p"
+            ? child.attributes.alt
+            : extractTextFromElement(child);
         }
       })
       .filter((text) => text);
@@ -65,13 +68,22 @@ export function serializeDQLHtmlElementToObject(element: DQLHtmlElement): DQLFla
         break;
       case "a":
         if ((node.children[0] as any)?.type === "TextNode") {
-          flatObject.links.push({ href: node.attributes.href || "", text: (node.children[0] as any)?.text });
+          flatObject.links.push({
+            href: node.attributes.href || "",
+            text: (node.children[0] as any)?.text,
+          });
         } else if (node.children[0]?.tag === "img") {
-          flatObject.images.push({ src: node.children[0].attributes.src || "", alt: node.children[0].attributes.alt || "" });
+          flatObject.images.push({
+            src: node.children[0].attributes.src || "",
+            alt: node.children[0].attributes.alt || "",
+          });
         }
         break;
       case "img":
-        flatObject.images.push({ src: node.attributes.src || "", alt: node.attributes.alt || "" });
+        flatObject.images.push({
+          src: node.attributes.src || "",
+          alt: node.attributes.alt || "",
+        });
         break;
       case "span":
       case "p":
@@ -111,13 +123,17 @@ export async function runQueryAndGetVars(query: string) {
     dracoParser = new draco.parser(dracoLexer.lex());
     dracoInterpreter = new draco.interpreter(dracoParser.parse());
   } catch (error: any) {
-    throw new Error(`ERROR: unable to parse DracoQL due to error: ${error.message}`);
+    throw new Error(
+      `ERROR: unable to parse DracoQL due to error: ${error.message}`
+    );
   }
 
   try {
     await dracoInterpreter.run();
   } catch (error: any) {
-    throw new Error(`ERROR: unable to fetch headlines due to DracoQL error: ${error.message}`);
+    throw new Error(
+      `ERROR: unable to fetch headlines due to DracoQL error: ${error.message}`
+    );
   }
 
   return dracoInterpreter.NS;
