@@ -22,6 +22,10 @@ interface ProviderConfig {
     excludeDomains?: string[];
 }
 
+function isURL(url: string): boolean {
+    try { new URL(url); return true } catch { return false };
+}
+
 export default class NewsProvider {
     private headlineDirPath?: string;
     private everythingDirPath?: string;
@@ -61,10 +65,9 @@ export default class NewsProvider {
         const foundSource = sources.find((e: string) => e.startsWith(source));
 
         if (!foundSource) return [];
+        const dracoQLFileContent = await fs.readFile(path.join(dirpath, foundSource), 'utf-8');
+        let extractedDQLVars = await dracoAdapter.runQueryAndGetVars(dracoQLFileContent);
 
-        try {
-            const dracoQLFileContent = await fs.readFile(path.join(dirpath, foundSource), 'utf-8');
-            const extractedDQLVars = await dracoAdapter.runQueryAndGetVars(dracoQLFileContent);
             const dqlHtmlObjects = Object.values(extractedDQLVars as any)
                 .filter((dqlVar: any) => dqlVar.type !== 'HTML') as Array<dracoAdapter.DQLObject>;
 
@@ -74,12 +77,31 @@ export default class NewsProvider {
                         continue;
                     }
 
+                    const reg = /(h[0-6]|^span|^b|^em|^i)/;
+                    if (childElement.tag.match(reg)) continue;
+
                     const flatObject = dracoAdapter.serializeDQLHtmlElementToObject(childElement);
+
+                    let urlToImage = flatObject.images?.[0]?.src || null;
+                    if (urlToImage) {
+                        if (!utils.isRelativeURL(urlToImage)) {
+                            urlToImage = urlToImage.replace(/\/\//, "https://")
+                        }
+                        urlToImage = utils.sanitizeUrl(urlToImage);
+                    }
+
+                    let url = flatObject.links[0]?.href;
+                    if (url) {
+                        if (utils.isRelativeURL(url)) {
+                            url = `https://${source}/${url as string}` 
+                        }
+                       url = utils.sanitizeUrl(url);
+                    }
 
                     const article: NewsArticle = {
                         title: flatObject.headings?.[0] || flatObject.links[0]?.text || flatObject.images[0]?.alt || '',
-                        url: utils.isRelativeURL(flatObject.links[0]?.href || '') ? `https://${source}/${flatObject.links[0]?.href || ''}` : flatObject.links[0]?.href || '',
-                        urlToImage: utils.sanitizeUrl(flatObject.images?.[0]?.src || '') || null,
+                        url,
+                        urlToImage,
                         source,
                         description: null,
                         publishedAt: null,
@@ -92,7 +114,17 @@ export default class NewsProvider {
                     article.publishedAt = utils.convertToDate(extractor.getPublishedAt() || "");
                     article.title = extractor.getTitle() as string;
 
-                    if (!article.description && !article.publishedAt) continue;
+                    if (!article.description && !article.publishedAt) {
+                        await extractor.setHeadless();
+
+                        article.description = extractor.getDescription();
+                        article.publishedAt = utils.convertToDate(extractor.getPublishedAt() || "");
+                        article.title = extractor.getTitle() as string;
+
+                        if (!article.description && !article.publishedAt) continue;
+                    }
+
+
 
                     // NOTE(aadv1k): we can't reliably get the author due to the homogeneity of text-based data
                     // article.author = extractor.getAuthor();
@@ -101,11 +133,9 @@ export default class NewsProvider {
                 }
 
             }
-        } catch (error: any) {
-            throw new Error(`ERROR: failed to parse DracoQL due to error: ${error.message}`);
-        }
         return newsArticles;
     }
+
 
     private async fetchAndParseDQLFromDir(dirpath: string, config: ProviderConfig = {}): Promise<NewsArticle[]> {
         const { countryCode = this.defaultCountryCode, domains = [], excludeDomains = [] } = config;

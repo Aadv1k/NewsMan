@@ -8,8 +8,13 @@ export default class ArticleInfoExtractor {
 
     constructor(url: string) {
         this.url = url;
-        this.query = `VAR data = FETCH "${url}" CACHE 6e5 "./" AS HTML HEADLESS`
+        this.query = `VAR data = FETCH "${url}" CACHE 6e5 "./" AS HTML`
         this.htmlContentRoot = null;
+    }
+
+    async setHeadless() {
+        this.query = `VAR data = FETCH "${this.url}" CACHE 6e5 "./" AS HTML HEADLESS`
+        await this.setup();
     }
 
     async setup() {
@@ -63,6 +68,21 @@ export default class ArticleInfoExtractor {
     }
 
     getPublishedAt(): string | null {
+        if (!this.htmlContentRoot) {
+            return null;
+        }
+
+        const dateRegex = /(\w{3} \d{1,2}, \d{4} \d{1,2}:\d{2} [APap][Mm] \w{3})/;
+
+        const dateString = Array.from(this.htmlContentRoot.querySelectorAll("p, span, div"))
+            .map((e: any) => e.innerText.trim().replace(/\r\n/g, ""))
+            .find(e => e.match(dateRegex));
+
+        return dateString || null;
+    }
+
+
+    getPublishedAt_old(): string | null {
         if (!this.htmlContentRoot) {
             return null;
         }

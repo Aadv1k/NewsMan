@@ -81,8 +81,10 @@ export function serializeDQLHtmlElementToObject(element: DQLHtmlElement): DQLFla
         break;
       case "article":
       case "script":
+      case "ul":
       case "samp":
       case "div":
+      case "section":
       case "li":
       case "figure":
       case "figcaption":

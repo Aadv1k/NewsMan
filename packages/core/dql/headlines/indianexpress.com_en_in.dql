@@ -1,6 +1,6 @@
-VAR data = FETCH "https://www.hindustantimes.com/india-news"
+VAR data = FETCH "https://indianexpress.com/"
   CACHE 6e5 "./"
   HEADER "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/112.0"
   AS HTML HEADLESS
 
-VAR d1 = EXTRACT "#dataHolder" FROM data
+VAR d1 = EXTRACT "#HP_LATEST_NEWS > div:nth-child(1)" FROM data

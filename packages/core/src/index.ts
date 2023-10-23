@@ -14,7 +14,7 @@ const provider = new NewsProvider(
     console.log(
         JSON.stringify(
             await provider.fetchAllHeadlines({
-                excludeDomains: ["ndtv.com"]
+                excludeDomains: ["hindustantimes.com"]
             }),
             null,
             2
