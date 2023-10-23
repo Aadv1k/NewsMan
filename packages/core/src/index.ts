@@ -14,10 +14,12 @@ const provider = new NewsProvider(
     console.log(
         JSON.stringify(
             await provider.fetchAllHeadlines({
-                excludeDomains: ["hindustantimes.com"]
+                excludeDomains: []
             }),
             null,
             2
         )
     );
 })()
+
+export default provider;

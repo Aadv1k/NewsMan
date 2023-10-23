@@ -2,6 +2,8 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import assert from 'assert';
 
+import he from "he";
+
 import * as dracoAdapter from './DracoAdapter';
 import * as utils from './utils';
 
@@ -91,15 +93,19 @@ export default class NewsProvider {
                     }
 
                     let url = flatObject.links[0]?.href;
-                    if (url) {
-                        if (utils.isRelativeURL(url)) {
-                            url = `https://${source}/${url as string}` 
-                        }
-                       url = utils.sanitizeUrl(url);
+
+
+                    if (!url) continue;
+
+                    if (utils.isRelativeURL(url)) {
+                        url = `https://${source}/${url as string}` 
                     }
+                    url = utils.sanitizeUrl(url);
+
+                    let title = he.decode(flatObject.headings?.[0] || flatObject.links[0]?.text || flatObject.images[0]?.alt || '');
 
                     const article: NewsArticle = {
-                        title: flatObject.headings?.[0] || flatObject.links[0]?.text || flatObject.images[0]?.alt || '',
+                        title,
                         url,
                         urlToImage,
                         source,
@@ -124,7 +130,7 @@ export default class NewsProvider {
                         if (!article.description && !article.publishedAt) continue;
                     }
 
-
+                    article.description = he.decode(article.description);
 
                     // NOTE(aadv1k): we can't reliably get the author due to the homogeneity of text-based data
                     // article.author = extractor.getAuthor();

@@ -16,7 +16,6 @@ export interface DQLHtmlElement {
 }
 
 
-
 export interface DQLFlatObject {
   headings: string[];
   links: { href: string; text: string }[];

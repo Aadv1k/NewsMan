@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "dracoql": "^0.4.1",
+    "he": "^1.2.0",
     "node-html-parser": "^6.1.10"
   }
 }
