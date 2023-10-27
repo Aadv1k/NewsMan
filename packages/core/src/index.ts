@@ -1,4 +1,4 @@
-import NewsProvider from "./NewsProvider";
+import fetchDataForSource from "./NewsProvider";
 
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -11,11 +11,6 @@ import { NewsArticle } from "./NewsProvider";
 import * as utils from "./utils"
 
 const HEADLINES_PATH = path.join(__dirname, "../dql/headlines");
-
-const provider = new NewsProvider(
-  HEADLINES_PATH,
-  undefined
-);
 
 interface NewsFilters {
   excludeDomains: Array<string>;
@@ -55,11 +50,11 @@ export async function fetchHeadlines(filters: NewsFilters, cache?: Cache) {
         if (cachedArticles && await cache.isFresh(cacheKey)) {
           articles = cachedArticles;
         } else {
-          articles = await provider.fetchDataForSource(domain, dirpath);
+          articles = await fetchDataForSource(domain, dirpath);
           await cache.store(cacheKey, articles);
         }
       } else {
-        articles = await provider.fetchDataForSource(domain, dirpath);
+        articles = await fetchDataForSource(domain, dirpath);
       }
 
       newsArticles = [...articles, ...newsArticles];
