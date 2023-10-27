@@ -87,6 +87,9 @@ export function serializeDQLHtmlElementToObject(
         break;
       case "span":
       case "p":
+      case "i":
+      case "b":
+      case "em":
       case "small":
         flatObject.paragraphs.push(extractTextFromElement(node));
         break;

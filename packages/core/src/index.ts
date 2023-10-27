@@ -9,17 +9,4 @@ const provider = new NewsProvider(
   "in" // default country code
 );
 
-
-(async () => {
-    console.log(
-        JSON.stringify(
-            await provider.fetchAllHeadlines({
-                excludeDomains: []
-            }),
-            null,
-            2
-        )
-    );
-})()
-
 export default provider;

@@ -2,8 +2,6 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import assert from "assert";
 
-import he from "he";
-
 import * as dracoAdapter from "./DracoAdapter";
 import * as utils from "./utils";
 
@@ -126,14 +124,11 @@ export default class NewsProvider {
         }
         url = utils.sanitizeUrl(url);
 
-        let title = he.decode(
-          flatObject.headings?.[0] ||
+        let title = flatObject.headings?.[0] ||
             flatObject.links[0]?.text ||
-            flatObject.images[0]?.alt ||
-            ""
-        );
+            flatObject.images[0]?.alt || ""
 
-        const article: NewsArticle = {
+        let article: NewsArticle = {
           title,
           url,
           urlToImage,
@@ -152,18 +147,20 @@ export default class NewsProvider {
         article.title = extractor.getTitle() as string;
 
         if (!article.description && !article.publishedAt) {
-          await extractor.setHeadless();
+            const [description, publishedAt, title] = await extractor.runTasksWithHeadless(
+                [
+                    () => extractor.getDescription(), () => extractor.getPublishedAt(), () => extractor.getTitle()]
+            );
+            if (!description || !title) continue;
 
-          article.description = extractor.getDescription();
-          article.publishedAt = utils.convertToDate(
-            extractor.getPublishedAt() || ""
-          );
-          article.title = extractor.getTitle() as string;
+            article = {
+                ...article,
+                description,
+                title,
+                publishedAt: utils.convertToDate(publishedAt || ""),
+            }
 
-          if (!article.description && !article.publishedAt) continue;
         }
-
-        article.description = he.decode(article.description);
 
         // NOTE(aadv1k): we can't reliably get the author due to the homogeneity of text-based data
         // article.author = extractor.getAuthor();
