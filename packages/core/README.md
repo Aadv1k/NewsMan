@@ -70,7 +70,7 @@ VAR d2 = EXTRACT "div.new-cat-listing:nth-child(8) > div:nth-child(2) > div:nth-
 
 Here the `data` variable stores the html for the retrieved site, and `d1` and `d2` correspond to a HTML container with children that look like this
 
-![Image that shows a list-view](./reference-1.png)
+![Image that shows a list-view](./docs/reference-1.png)
 
 
 > The variable names can be anything as long as there are some which hold some HTML data in them, `d1` and `d2` are just arbitrary names 
