@@ -34,16 +34,13 @@ function isURL(url: string): boolean {
 export default class NewsProvider {
   private headlineDirPath?: string;
   private everythingDirPath?: string;
-  private defaultCountryCode: string;
 
   constructor(
     headlineDir?: string,
-    everythingDir?: string,
-    defaultCountryCode?: string
-  ) {
+    everythingDir?: string
+  ) 
     this.headlineDirPath = headlineDir;
     this.everythingDirPath = everythingDir;
-    this.defaultCountryCode = defaultCountryCode ?? "in";
   }
 
   async fetchHeadlinesForSource(source: string): Promise<NewsArticle[]> {
@@ -64,16 +61,7 @@ export default class NewsProvider {
     return this.fetchDataForSource(source, this.everythingDirPath as string);
   }
 
-  async fetchAllHeadlines(config: ProviderConfig): Promise<NewsArticle[]> {
-    if (!this.headlineDirPath) {
-      throw new Error(
-        "ERROR: fetchHeadlines cannot be used without specifying headlineDirPath"
-      );
-    }
-    return this.fetchAndParseDQLFromDir(this.headlineDirPath, config);
-  }
-
-  private async fetchDataForSource(
+  async fetchDataForSource(
     source: string,
     dirpath: string
   ): Promise<Array<NewsArticle>> {
@@ -167,43 +155,6 @@ export default class NewsProvider {
 
         newsArticles.push(article);
       }
-    }
-    return newsArticles;
-  }
-
-  private async fetchAndParseDQLFromDir(
-    dirpath: string,
-    config: ProviderConfig = {}
-  ): Promise<NewsArticle[]> {
-    const {
-      countryCode = this.defaultCountryCode,
-      domains = [],
-      excludeDomains = [],
-    } = config;
-
-    const fileNames = await fs.readdir(dirpath);
-    assert(
-      fileNames.length !== 0,
-      `At least one DracoQL file is expected in ${dirpath}`
-    );
-
-    let newsArticles: NewsArticle[] = [];
-
-    for (const fname of fileNames) {
-      const parsedFileName = utils.parseDqlFileName(fname);
-      if (!parsedFileName) continue;
-
-      const { domain, language, country } = parsedFileName;
-
-      if (
-        excludeDomains.some((e: string) => domain.includes(e)) ||
-        countryCode !== country
-      ) {
-        continue;
-      }
-
-      const articles = await this.fetchDataForSource(domain, dirpath);
-      newsArticles = [...articles, ...newsArticles];
     }
     return newsArticles;
   }

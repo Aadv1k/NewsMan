@@ -1,6 +1,11 @@
-import provider from "./src/";
-import cacheFactory from "./src/";
+import { fetchHeadlines } from "./src/";
+import { LocalCache } from "./src/cache";
 
 (async () => {
-    await provider.fetchAllHeadlines({});
+    const cache = new LocalCache();
+
+    const articles = await fetchHeadlines({
+        excludeDomains: [],
+        countryCode: "in"
+    }, cache);
 })();
