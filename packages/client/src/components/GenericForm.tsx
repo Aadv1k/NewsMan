@@ -7,7 +7,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 
-import * as Colors from '@mui/material/Colors';
+import * as Colors from '@mui/material/colors';
 
 
 import { Link as RouterLink } from 'react-router-dom';
