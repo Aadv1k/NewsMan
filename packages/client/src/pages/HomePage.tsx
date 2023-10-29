@@ -14,13 +14,12 @@ export default function HomePage() {
       <Navbar />
 
       <Stack
-        spacing={4}
+        spacing={2}
         alignItems="center"
         sx={{ padding: ".75rem", marginBlock: "1.25rem" }}
       >
-        <Stack spacing={1} alignItems="center">
+        <Stack spacing={3} alignItems="center">
           <Typography
-            component="h1"
             variant="h1"
             sx={{
               fontFamily: "headingFontFamily",
@@ -29,28 +28,29 @@ export default function HomePage() {
               textAlign: "center",
             }}
           >
-            A Free and Open-Source alternative to NewsAPI
+            Your Very Own, Totally Free, and Self-Hosted NewsAPI Alternative
           </Typography>
           <Typography
             variant="subtitle1"
-            sx={{ color: "#6c7887", maxWidth: "60ch", textAlign: "center" }}
+            color="grey.800"
+            sx={{ maxWidth: "45ch", textAlign: "center" }}
           >
-            Use the @newsman/core to self-host, or use our free (mostly)
-            unlimited API to access the service.
+              Use our completely free API or hack the open-source infrastructure on your own machine
           </Typography>
-        </Stack>
+
         <PrimaryButton
           size="medium"
           endIcon={<ArrowForwardIcon />}
           customSx={{
             padding: ".75rem 1.75rem",
-            borderRadius: ".75rem",
+            borderRadius: ".25rem",
           }}
             component={RouterLink}
             to="/signup"
         >
           Get a free key
         </PrimaryButton>
+        </Stack>
       </Stack>
 
       <Box sx={{ position: "relative", height: "fit-content" }}>
@@ -63,7 +63,7 @@ export default function HomePage() {
             backgroundColor: Colors.red[100],
             position: "absolute",
             borderRadius: "9999px",
-            filter: "blur(30px)"
+            filter: "blur(40px)"
           }}
         />
 

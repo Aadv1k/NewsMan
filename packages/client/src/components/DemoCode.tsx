@@ -68,25 +68,28 @@ function DemoCard({ method, data, url }: DemoCardProps) {
           alignItems="center"
           sx={{ padding: "0.75rem" }}
         >
-          <Chip color="success" label={method} />
-          <Typography color="grey.600" fontFamily="monospace">
+          <Chip color="success" label={method} fontFamily="monospaceFontFamily"/>
+          <Typography color="grey.700" fontFamily="monospaceFontFamily">
             {url}
           </Typography>
         </Stack>
 
-        <SyntaxHighlighter
-          language="json"
-          style={syntaxStyle}
-          customStyle={{
-            background: "none",
-            margin: 0,
-            overflow: "scroll",
-            maxHeight: "23rem",
-            padding: "0.75rem",
-          }}
-        >
-          {JSON.stringify(exampleData, null, 2)}
-        </SyntaxHighlighter>
+              <SyntaxHighlighter
+                  language="json"
+                  style={syntaxStyle}
+                  customStyle={{
+                      background: "none",
+                      margin: 0,
+                      overflow: "scroll",
+                      maxHeight: "23rem",
+                      padding: "0.75rem"
+                  }}
+              >
+                  {JSON.stringify(exampleData, null, 2)}
+              </SyntaxHighlighter>
+
+
+
       </CardContent>
     </Card>
   );

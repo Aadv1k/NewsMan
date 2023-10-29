@@ -14,7 +14,7 @@ const theme = createTheme({
   typography: {
     fontFamily: `"Inter", "Helvetica", "Arial", sans-serif`,
     headingFontFamily: `Syne, "Times New Roman", sans-serif`,
-
+    monospaceFontFamily: "'JetBrains Mono', 'Source Code Pro', monospace",
     h1: {
       fontSize: "3.25rem",
       "@media (min-width:600px)": {
