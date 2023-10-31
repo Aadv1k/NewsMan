@@ -5,9 +5,9 @@ import { LocalCache } from "./src/cache";
     const cache = new LocalCache(5);
 
     const articles = await fetchHeadlines({
-        excludeDomains: ["ndtv.com", "india.com", "indianexpress.com"],
-        countryCode: "in"
+        excludeDomains: [],
+        countryCode: ""
     }, cache);
 
-    console.log(articles);
+    console.log(JSON.stringify(articles, null, 2));
 })();

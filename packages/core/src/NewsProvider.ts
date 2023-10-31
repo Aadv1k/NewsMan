@@ -31,19 +31,11 @@ function isURL(url: string): boolean {
   }
 }
 
-export default async function fetchDataForSource(source: string, dirpath: string): Promise<Array<NewsArticle>> {
+export default async function fetchDataForSource(source: NewsSrc): Promise<Array<NewsArticle>> {
     const newsArticles: Array<NewsArticle> = [];
 
-    const sources = await fs.readdir(dirpath);
-    const foundSource = sources.find((e: string) => e.startsWith(source));
-
-    if (!foundSource) return [];
-    const dracoQLFileContent = await fs.readFile(
-        path.join(dirpath, foundSource),
-        "utf-8"
-    );
     let extractedDQLVars = await dracoAdapter.runQueryAndGetVars(
-        dracoQLFileContent
+        source.sourceCode
     );
 
     const dqlHtmlObjects = Object.values(extractedDQLVars as any).filter(

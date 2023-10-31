@@ -1,63 +1,107 @@
-import fetchDataForSource from "./NewsProvider";
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import assert from 'node:assert';
 
-import fs from "node:fs/promises";
-import path from "node:path";
-import assert from "node:assert";
+import fetchDataForSource, { NewsArticle } from './NewsProvider';
+import { Cache } from './cache';
+import * as utils from './utils';
 
-import { Cache } from "./cache"
-
-import { NewsArticle } from "./NewsProvider";
-
-import * as utils from "./utils"
-
-const HEADLINES_PATH = path.join(__dirname, "../dql/headlines");
+const HEADLINES_PATH = path.join(__dirname, '../dql/headlines');
 
 interface NewsFilters {
-  excludeDomains: Array<string>;
-  countryCode: string;
+  excludeDomains?: string[];
+  countryCode?: string;
 }
 
-export async function fetchHeadlines(filters: NewsFilters, cache?: Cache) {
-    const dirpath = HEADLINES_PATH;
+interface NewsSrc {
+  domain: string;
+  countryCode: string;
+  languageCode: string;
+  sourceCode: string;
+}
 
-    const fileNames = await fs.readdir(dirpath);
+class NewsSource {
+  sources: Map<string, NewsSrc>;
 
-    assert(
-      fileNames.length !== 0,
-      `At least one DracoQL file is expected in ${dirpath}`
-    );
+  constructor() {
+    this.sources = new Map();
+  }
 
-    let newsArticles: NewsArticle[] = [];
+  async registerFromFile(filepath: string) {
+    const fname = path.basename(filepath);
+    const parsedFileName = utils.parseDqlFileName(fname);
+    if (!parsedFileName) throw new Error('Unable to parse the name, incorrect format');
 
-    for (const fname of fileNames) {
-      const parsedFileName = utils.parseDqlFileName(fname);
-      if (!parsedFileName) continue;
+    const content = await fs.readFile(filepath, 'utf-8');
 
-      const { domain, language, country } = parsedFileName;
+    if (!content.trim()) throw new Error('Empty file content');
 
-      if (
-        filters.excludeDomains.some((e: string) => domain.includes(e)) ||
-        filters.countryCode !== country
-      ) {
-        continue;
-      }
+    this.sources.set(parsedFileName.domain, {
+      domain: parsedFileName.domain,
+      countryCode: parsedFileName.countryCode,
+      sourceCode: content,
+      languageCode: '',
+    });
+  }
 
-      let articles: NewsArticle[];
+  async registerFromDir(dirpath: string) {
+    const fnames = await fs.readdir(dirpath);
+    for (const fname of fnames) {
+      const filePath = path.join(dirpath, fname);
 
-      if (cache) {
-        const cacheKey = `cache_${domain}_${language}_${country}`;
-        const cachedArticles = await cache.fetch(cacheKey);
-        if (cachedArticles && await cache.isFresh(cacheKey)) {
-          articles = cachedArticles;
-        } else {
-          articles = await fetchDataForSource(domain, dirpath);
-          await cache.store(cacheKey, articles);
-        }
-      } else {
-        articles = await fetchDataForSource(domain, dirpath);
-      }
-
-      newsArticles = [...articles, ...newsArticles];
+      await this.registerFromFile(filePath);
     }
-    return newsArticles;
+  }
+
+  async register(source: NewsSrc) {
+    this.sources.set(source.domain, {
+      domain: source.domain,
+      countryCode: source.countryCode,
+      sourceCode: source.sourceCode,
+      languageCode: '',
+    });
+  }
+}
+
+const SourceProvider = new NewsSource();
+
+export async function fetchHeadlines(filters: NewsFilters, cache?: Cache) {
+  await SourceProvider.registerFromDir(HEADLINES_PATH);
+
+  assert(
+    SourceProvider.sources.size !== 0,
+    `At least one DracoQL file is expected in ${HEADLINES_PATH}`
+  );
+
+  let newsArticles: NewsArticle[] = [];
+
+  SourceProvider.sources.forEach((source: NewsSrc) => {
+    const { domain, languageCode, countryCode } = source;
+
+    if (
+      (filters.excludeDomains ?? []).some((e) => domain.includes(e)) ||
+      (filters.countryCode && filters.countryCode !== countryCode)
+    ) {
+      return;
+    }
+
+    let articles: NewsArticle[] = [];
+
+    if (cache) {
+      const cacheKey = `cache_${domain}_${languageCode}_${countryCode}`;
+      const cachedArticles = await cache.fetch(cacheKey);
+      if (cachedArticles && (await cache.isFresh(cacheKey))) {
+        articles = cachedArticles;
+      } else {
+        articles = await fetchDataForSource(source);
+        await cache.store(cacheKey, articles);
+      }
+    } else {
+      articles = await fetchDataForSource(source);
+    }
+
+    newsArticles.push(...articles);
+  });
+
+  return newsArticles;
 }

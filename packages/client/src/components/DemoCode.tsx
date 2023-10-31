@@ -87,9 +87,6 @@ function DemoCard({ method, data, url }: DemoCardProps) {
               >
                   {JSON.stringify(exampleData, null, 2)}
               </SyntaxHighlighter>
-
-
-
       </CardContent>
     </Card>
   );
