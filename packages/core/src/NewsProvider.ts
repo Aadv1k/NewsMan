@@ -5,6 +5,8 @@ import assert from "assert";
 import * as dracoAdapter from "./DracoAdapter";
 import * as utils from "./utils";
 
+import { NewsSrc } from "./SourceProvider";
+
 import ArticleInfoExtractor from "./ArticleInfoExtractor";
 
 export interface NewsArticle {
@@ -34,15 +36,14 @@ function isURL(url: string): boolean {
 export default async function fetchDataForSource(source: NewsSrc): Promise<Array<NewsArticle>> {
     const newsArticles: Array<NewsArticle> = [];
 
-    let extractedDQLVars = await dracoAdapter.runQueryAndGetVars(
-        source.sourceCode
-    );
+    let extractedDQLVars = await dracoAdapter.runQueryAndGetVars(source.sourceCode);
 
     const dqlHtmlObjects = Object.values(extractedDQLVars as any).filter(
         (dqlVar: any) => dqlVar.type !== "HTML"
     ) as Array<dracoAdapter.DQLObject>;
 
     for (const dqlHtmlObj of dqlHtmlObjects) {
+
         for (const childElement of dqlHtmlObj.value.children) {
             if ((childElement as any).type === "TextNode") {
                 continue;
@@ -67,7 +68,7 @@ export default async function fetchDataForSource(source: NewsSrc): Promise<Array
             if (!url) continue;
 
             if (utils.isRelativeURL(url)) {
-                url = `https://${source}/${url as string}`;
+                url = `https://${source.domain}/${url as string}`;
             }
             url = utils.sanitizeUrl(url);
 
@@ -79,7 +80,7 @@ export default async function fetchDataForSource(source: NewsSrc): Promise<Array
                 title,
                 url,
                 urlToImage,
-                source,
+                source: source.domain,
                 description: null,
                 publishedAt: null,
             };
