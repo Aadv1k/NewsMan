@@ -36,7 +36,13 @@ function isURL(url: string): boolean {
 export default async function fetchDataForSource(source: NewsSrc): Promise<Array<NewsArticle>> {
     const newsArticles: Array<NewsArticle> = [];
 
-    let extractedDQLVars = await dracoAdapter.runQueryAndGetVars(source.sourceCode);
+    let extractedDQLVars;
+
+    try {
+      extractedDQLVars = await dracoAdapter.runQueryAndGetVars(source.sourceCode);
+    } catch {
+        return newsArticles;
+    }
 
     const dqlHtmlObjects = Object.values(extractedDQLVars as any).filter(
         (dqlVar: any) => dqlVar.type !== "HTML"

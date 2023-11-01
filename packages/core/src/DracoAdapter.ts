@@ -50,7 +50,7 @@ export function serializeDQLHtmlElementToObject(
       })
       .filter((text) => text);
 
-    return textNodes.pop() || "";
+    return textNodes.pop() || ";";
   }
 
   function processElement(node: DQLHtmlElement) {
@@ -93,18 +93,8 @@ export function serializeDQLHtmlElementToObject(
       case "small":
         flatObject.paragraphs.push(extractTextFromElement(node));
         break;
-      case "article":
-      case "script":
-      case "ul":
-      case "samp":
-      case "div":
-      case "section":
-      case "li":
-      case "figure":
-      case "figcaption":
-        break;
       default:
-        throw new Error(`ERROR unhandled tag: ${node.tag}`);
+         break;
     }
 
     if (node.children) {
@@ -135,7 +125,7 @@ export async function runQueryAndGetVars(query: string) {
     await dracoInterpreter.run();
   } catch (error: any) {
     throw new Error(
-      `ERROR: unable to fetch headlines due to DracoQL error: ${error.message}`
+      `ERROR: unable to fetch headlines due to DracoQL error: ${error.message} -> ${query}`
     );
   }
 
