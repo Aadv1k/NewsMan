@@ -2,6 +2,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import assert from 'node:assert';
 
+export { default as LocalCache } from "./cache/LocalCache";
+
 import fetchDataForSource, { NewsArticle } from './NewsProvider';
 import { Cache } from './cache';
 import * as utils from './utils';

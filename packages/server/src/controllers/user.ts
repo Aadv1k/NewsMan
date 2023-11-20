@@ -170,11 +170,10 @@ export async function deleteUser(req: Request, res: Response) {
     );
   }
 
+  let token;
   try {
-    utils.verifyToken(parsedToken);
+    token = utils.parseToken(parsedToken);
   } catch (error) {
-    console.error("Error verifying token:", error);
-
     return res.status(401).json(
       new ErrorResponseBuilder()
         .withCode(401)
@@ -185,7 +184,6 @@ export async function deleteUser(req: Request, res: Response) {
     );
   }
 
-  const token = utils.parseToken(parsedToken);
   let userId = token.id;
 
   try {

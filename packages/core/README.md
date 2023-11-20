@@ -1,11 +1,10 @@
 # @newsman/core
 
-A framework to mine news articles from various outlets through a reliable and modular system, inspired by the [NewsAPI](https://newsapi.org)
+A library to mine news articles from various outlets through a reliable and modular system, inspired by the [NewsAPI](https://newsapi.org)
 
 - :newspaper: Sort news by language, country and domain
-- :ok: Easily add or exclude sites by just deleting the corresponding files   
+- :ok: Easily add or exclude sites by just deleting the corresponding files
 - :dragon: Customize the scraping behaviour through [DracoQL](https://github.com/aadv1k/DracoQL)
-
 
 ## Usage
 
@@ -54,7 +53,6 @@ This will return an array of `NewsArticle` which look like this
 ]
 ```
 
-
 ## How it Works
 
 The system works by looping and parsing through a dir of `.dql` file, which corresponds to [DracoQL](https://github.com/aadv1k/DracoQL) query file. 
@@ -64,14 +62,18 @@ The query might look something like this, also you don't need to know DQL, it's 
 ```cql
 VAR data = FETCH "https://www.india.com/" AS HTML
 
-VAR d1 = EXTRACT ".top-news > div:nth-child(2)" FROM data
-VAR d2 = EXTRACT "div.new-cat-listing:nth-child(8) > div:nth-child(2) > div:nth-child(2)" FROM data
+VAR d1 = EXTRACT 
+            ".top-news > div:nth-child(2)" 
+            FROM data
+
+VAR d2 = EXTRACT 
+            "div.new-cat-listing:nth-child(8) > div:nth-child(2) > div:nth-child(2)" 
+            FROM data
 ```
 
 Here the `data` variable stores the html for the retrieved site, and `d1` and `d2` correspond to a HTML container with children that look like this
 
 ![Image that shows a list-view](./docs/reference-1.png)
-
 
 > The variable names can be anything as long as there are some which hold some HTML data in them, `d1` and `d2` are just arbitrary names 
 
